@@ -1,3 +1,3 @@
-module github.com/surmavagit/authorsearch
+module github.com/surmavagit/authorsearchcli
 
 go 1.21.1
