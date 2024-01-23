@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 type data struct {
@@ -25,7 +26,7 @@ type Resource struct {
 type searchResult struct {
 	Resource string
 	URL      string
-	Error    string
+	ErrorMsg string
 }
 
 func Search(resource []Resource, query string) ([]searchResult, error) {
@@ -42,7 +43,7 @@ func Search(resource []Resource, query string) ([]searchResult, error) {
 		result := searchResult{Resource: r.Name}
 		url, err := r.SearchResource(query)
 		if err != nil {
-			result.Error = err.Error()
+			result.ErrorMsg = err.Error()
 		} else {
 			result.URL = url
 		}
@@ -87,9 +88,15 @@ func (website *Resource) loadCache() error {
 }
 
 func (website Resource) updateCache() error {
-	res, err := http.Get(website.BaseURL + website.QueryURL)
+	client := http.Client{
+		Timeout: 5 * time.Second,
+	}
+	res, err := client.Get(website.BaseURL + website.QueryURL)
 	if err != nil {
 		return err
+	}
+	if res.StatusCode != 200 {
+		return errors.New(res.Status)
 	}
 
 	body, err := io.ReadAll(res.Body)

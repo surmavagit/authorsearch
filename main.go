@@ -23,7 +23,7 @@ func main() {
 	}
 
 	for _, r := range results {
-		output := r.Error + r.URL
+		output := r.ErrorMsg + r.URL
 		if output == "" {
 			fmt.Println(r.Resource, "not found")
 		} else {
