@@ -12,12 +12,12 @@ type data struct {
 }
 
 type Resource struct {
-	Name      string
-	BaseURL   string
-	QueryURL  string
-	CacheFile string
-	URLFilter string
-	Data      []data
+	Name       string
+	BaseURL    string
+	QueryURL   string
+	DataFormat string
+	URLFilter  string // Valid URLs contain this string
+	Data       []data
 }
 
 type searchResult struct {
