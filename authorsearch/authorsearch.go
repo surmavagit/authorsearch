@@ -1,13 +1,9 @@
 package authorsearch
 
 import (
-	"encoding/json"
 	"errors"
-	"io"
-	"net/http"
 	"os"
 	"strings"
-	"time"
 )
 
 type data struct {
@@ -29,6 +25,8 @@ type searchResult struct {
 	ErrorMsg string
 }
 
+// Search creates a cache folder, if one doesn't exist, and then runs
+// SearchResouce on every resource provided to it.
 func Search(resource []Resource, query string) ([]searchResult, error) {
 	_, err := os.Stat("cache")
 	if errors.Is(err, os.ErrNotExist) {
@@ -52,6 +50,8 @@ func Search(resource []Resource, query string) ([]searchResult, error) {
 	return results, nil
 }
 
+// SearchResource loads the cached data and searches for the author.
+// It returns the author URL on success and an empty string on failure.
 func (website Resource) SearchResource(query string) (string, error) {
 	err := website.loadCache()
 	if err != nil {
@@ -65,45 +65,4 @@ func (website Resource) SearchResource(query string) (string, error) {
 	}
 
 	return "", nil
-}
-
-func (website *Resource) loadCache() error {
-	_, err := os.Stat(website.CacheFile)
-	if errors.Is(err, os.ErrNotExist) {
-		err := website.updateCache()
-		if err != nil {
-			return err
-		}
-	} else if err != nil {
-		return err
-	}
-
-	file, err := os.ReadFile(website.CacheFile)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(file, &website.Data)
-	return err
-}
-
-func (website Resource) updateCache() error {
-	client := http.Client{
-		Timeout: 5 * time.Second,
-	}
-	res, err := client.Get(website.BaseURL + website.QueryURL)
-	if err != nil {
-		return err
-	}
-	if res.StatusCode != 200 {
-		return errors.New(res.Status)
-	}
-
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		return err
-	}
-
-	err = os.WriteFile(website.CacheFile, body, 0644)
-	return err
 }
