@@ -7,6 +7,7 @@ var marxists = authorsearch.Resource{
 	BaseURL:   "https://www.marxists.org/",
 	QueryURL:  "admin/js/data/authors.json",
 	CacheFile: "cache/marxists.json",
+	URLFilter: "index.htm",
 }
 
 var resources = []authorsearch.Resource{marxists}

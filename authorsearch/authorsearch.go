@@ -16,6 +16,7 @@ type Resource struct {
 	BaseURL   string
 	QueryURL  string
 	CacheFile string
+	URLFilter string
 	Data      []data
 }
 

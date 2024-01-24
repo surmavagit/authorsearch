@@ -6,11 +6,13 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
-// loadCache creates the cache file for the resource, if one doesn't exist,
-// and then loads the data into memory
+// loadCache reads the cache file, filters the data, if necessary,
+// and loads the results into memory. If the cache file doesn't exist,
+// loadCache runs updateCache function.
 func (website *Resource) loadCache() error {
 	_, err := os.Stat(website.CacheFile)
 	if errors.Is(err, os.ErrNotExist) {
@@ -25,8 +27,22 @@ func (website *Resource) loadCache() error {
 		return err
 	}
 
-	err = json.Unmarshal(file, &website.Data)
-	return err
+	var rawData []data
+	err = json.Unmarshal(file, &rawData)
+	if err != nil {
+		return err
+	}
+
+	if website.URLFilter != "" {
+		for _, d := range rawData {
+			if strings.Contains(d.AuthorURL, website.URLFilter) {
+				website.Data = append(website.Data, d)
+			}
+		}
+	} else {
+		website.Data = rawData
+	}
+	return nil
 }
 
 // updateCache carries out an http get request and saves the response body
