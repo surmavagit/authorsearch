@@ -14,7 +14,7 @@ import (
 // and loads the results into memory. If the cache file doesn't exist,
 // loadCache runs updateCache function.
 func (website *Resource) loadCache() error {
-	_, err := os.Stat(website.CacheFile)
+	_, err := os.Stat(website.getCacheFileName())
 	if errors.Is(err, os.ErrNotExist) {
 		err = website.updateCache()
 	}
@@ -22,7 +22,7 @@ func (website *Resource) loadCache() error {
 		return err
 	}
 
-	file, err := os.ReadFile(website.CacheFile)
+	file, err := os.ReadFile(website.getCacheFileName())
 	if err != nil {
 		return err
 	}
@@ -64,6 +64,10 @@ func (website Resource) updateCache() error {
 		return err
 	}
 
-	err = os.WriteFile(website.CacheFile, body, 0644)
+	err = os.WriteFile(website.getCacheFileName(), body, 0644)
 	return err
+}
+
+func (website Resource) getCacheFileName() string {
+	return "cache/" + website.Name + "." + website.DataFormat
 }
