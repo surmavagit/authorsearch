@@ -17,7 +17,6 @@ type Resource struct {
 	QueryURL   string
 	DataFormat string
 	URLFilter  string // Valid URLs contain this string
-	Data       []data
 }
 
 type searchResult struct {
@@ -52,14 +51,19 @@ func Search(resource []Resource, query string) ([]searchResult, error) {
 }
 
 // SearchResource loads the cached data and searches for the author.
-// It returns the author URL on success and an empty string on failure.
+// It returns the author URL on success and an empty string if the author was not found.
 func (website Resource) SearchResource(query string) (string, error) {
-	err := website.loadCache()
+	cache, err := website.loadCache()
 	if err != nil {
 		return "", err
 	}
 
-	for _, a := range website.Data {
+	data, err := website.parseCache(cache)
+	if err != nil {
+		return "", err
+	}
+
+	for _, a := range data {
 		if strings.Contains(a.Description, query) {
 			return website.BaseURL + a.AuthorURL, nil
 		}

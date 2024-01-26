@@ -10,43 +10,48 @@ import (
 	"time"
 )
 
-// loadCache reads the cache file, filters the data, if necessary,
-// and loads the results into memory. If the cache file doesn't exist,
-// loadCache runs updateCache function.
-func (website *Resource) loadCache() error {
+// loadCache loads the contents of the cache file. If it doesn't
+// exist, updateCache function is called.
+func (website Resource) loadCache() ([]byte, error) {
 	_, err := os.Stat(website.getCacheFileName())
 	if errors.Is(err, os.ErrNotExist) {
 		err = website.updateCache()
 	}
 	if err != nil {
-		return err
+		return []byte{}, err
 	}
 
 	file, err := os.ReadFile(website.getCacheFileName())
 	if err != nil {
-		return err
+		return []byte{}, err
 	}
+	return file, nil
+}
 
+// parseCache turns a byte stream from a cache file into a slice of data structs.
+// The slice is also filtered if a filter is specified for the resource.
+func (website Resource) parseCache(file []byte) ([]data, error) {
 	var rawData []data
-	err = json.Unmarshal(file, &rawData)
+	err := json.Unmarshal(file, &rawData)
 	if err != nil {
-		return err
+		return []data{}, err
 	}
 
 	if website.URLFilter != "" {
+		var filteredData []data
 		for _, d := range rawData {
 			if strings.Contains(d.AuthorURL, website.URLFilter) {
-				website.Data = append(website.Data, d)
+				filteredData = append(filteredData, d)
 			}
 		}
-	} else {
-		website.Data = rawData
+		return filteredData, nil
 	}
-	return nil
+
+	return rawData, nil
 }
 
 // updateCache carries out an http get request and saves the response body
-// as a cache file
+// into a file
 func (website Resource) updateCache() error {
 	client := http.Client{
 		Timeout: 5 * time.Second,
