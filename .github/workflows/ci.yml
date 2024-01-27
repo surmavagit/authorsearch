@@ -6,7 +6,7 @@ on:
 
 jobs:
   style:
-    name: formatting
+    name: formatting and testing
     runs-on: ubuntu-latest
 
     steps:
@@ -26,4 +26,7 @@ jobs:
 
       - name: Check for errors
         run: go vet ./... && staticcheck ./...
+
+      - name: Run tests
+        run: go test ./...
 
