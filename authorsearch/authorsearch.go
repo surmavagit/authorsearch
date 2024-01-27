@@ -63,6 +63,11 @@ func (website Resource) SearchResource(query string) (string, error) {
 		return "", err
 	}
 
+	data, err = website.filterData(data)
+	if err != nil {
+		return "", err
+	}
+
 	for _, a := range data {
 		if strings.Contains(a.Description, query) {
 			return website.BaseURL + a.AuthorURL, nil

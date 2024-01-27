@@ -37,17 +37,20 @@ func (website Resource) parseCache(file []byte) ([]data, error) {
 		return []data{}, err
 	}
 
-	if website.URLFilter != "" {
-		var filteredData []data
-		for _, d := range rawData {
-			if strings.Contains(d.AuthorURL, website.URLFilter) {
-				filteredData = append(filteredData, d)
-			}
-		}
-		return filteredData, nil
-	}
-
 	return rawData, nil
+}
+
+func (website Resource) filterData(rawData []data) ([]data, error) {
+	if website.URLFilter == "" {
+		return rawData, nil
+	}
+	var filteredData []data
+	for _, d := range rawData {
+		if strings.Contains(d.AuthorURL, website.URLFilter) {
+			filteredData = append(filteredData, d)
+		}
+	}
+	return filteredData, nil
 }
 
 // updateCache carries out an http get request and saves the response body
