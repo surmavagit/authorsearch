@@ -53,7 +53,9 @@ func Search(resource []Resource, query string) ([]searchResult, error) {
 // SearchResource loads the cached data and searches for the author.
 // It returns the author URL on success and an empty string if the author was not found.
 func (website Resource) SearchResource(query string) (string, error) {
-	cache, err := website.loadCache()
+	fullURL := website.BaseURL + website.QueryURL
+	cacheFileName := "cache/" + website.Name + "." + website.DataFormat
+	cache, err := loadCache(fullURL, cacheFileName)
 	if err != nil {
 		return "", err
 	}

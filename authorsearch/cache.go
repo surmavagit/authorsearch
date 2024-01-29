@@ -10,16 +10,16 @@ import (
 
 // loadCache loads the contents of the cache file. If it doesn't
 // exist, updateCache function is called.
-func (website Resource) loadCache() ([]byte, error) {
-	_, err := os.Stat(website.getCacheFileName())
+func loadCache(fullURL string, cacheFileName string) ([]byte, error) {
+	_, err := os.Stat(cacheFileName)
 	if errors.Is(err, os.ErrNotExist) {
-		err = website.updateCache()
+		err = updateCache(fullURL, cacheFileName)
 	}
 	if err != nil {
 		return []byte{}, err
 	}
 
-	file, err := os.ReadFile(website.getCacheFileName())
+	file, err := os.ReadFile(cacheFileName)
 	if err != nil {
 		return []byte{}, err
 	}
@@ -28,11 +28,11 @@ func (website Resource) loadCache() ([]byte, error) {
 
 // updateCache carries out an http get request and saves the response body
 // into a file
-func (website Resource) updateCache() error {
+func updateCache(fullURL string, cacheFileName string) error {
 	client := http.Client{
 		Timeout: 5 * time.Second,
 	}
-	res, err := client.Get(website.BaseURL + website.QueryURL)
+	res, err := client.Get(fullURL)
 	if err != nil {
 		return err
 	}
@@ -45,10 +45,6 @@ func (website Resource) updateCache() error {
 		return err
 	}
 
-	err = os.WriteFile(website.getCacheFileName(), body, 0644)
+	err = os.WriteFile(cacheFileName, body, 0644)
 	return err
-}
-
-func (website Resource) getCacheFileName() string {
-	return "cache/" + website.Name + "." + website.DataFormat
 }
