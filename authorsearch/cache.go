@@ -1,12 +1,10 @@
 package authorsearch
 
 import (
-	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -26,31 +24,6 @@ func (website Resource) loadCache() ([]byte, error) {
 		return []byte{}, err
 	}
 	return file, nil
-}
-
-// parseCache turns a byte stream from a cache file into a slice of data structs.
-// The slice is also filtered if a filter is specified for the resource.
-func (website Resource) parseCache(file []byte) ([]data, error) {
-	var rawData []data
-	err := json.Unmarshal(file, &rawData)
-	if err != nil {
-		return []data{}, err
-	}
-
-	return rawData, nil
-}
-
-func (website Resource) filterData(rawData []data) ([]data, error) {
-	if website.URLFilter == "" {
-		return rawData, nil
-	}
-	var filteredData []data
-	for _, d := range rawData {
-		if strings.Contains(d.AuthorURL, website.URLFilter) {
-			filteredData = append(filteredData, d)
-		}
-	}
-	return filteredData, nil
 }
 
 // updateCache carries out an http get request and saves the response body
