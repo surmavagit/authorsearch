@@ -10,4 +10,12 @@ var marxists = authorsearch.Resource{
 	URLFilter:  "index.htm",
 }
 
-var resources = []authorsearch.Resource{marxists}
+var mcmaster = authorsearch.Resource{
+	Name:       "mcmaster",
+	BaseURL:    "https://socialsciences.mcmaster.ca/econ/ugcm/3ll3/",
+	QueryURL:   "authors.html",
+	DataFormat: "html",
+	URLFilter:  "",
+}
+
+var resources = []authorsearch.Resource{marxists, mcmaster}
