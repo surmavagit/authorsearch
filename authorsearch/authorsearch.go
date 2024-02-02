@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-type data struct {
+type authorData struct {
 	Description string `json:"name"`
 	AuthorURL   string `json:"href"`
 }
