@@ -21,7 +21,7 @@ type Resource struct {
 
 type searchResult struct {
 	Resource string
-	URL      string
+	Authors  []authorData
 	ErrorMsg string
 }
 
@@ -39,11 +39,11 @@ func Search(resource []Resource, query string) ([]searchResult, error) {
 	results := []searchResult{}
 	for _, r := range resource {
 		result := searchResult{Resource: r.Name}
-		url, err := r.SearchResource(query)
+		dataSlice, err := r.SearchResource(query)
 		if err != nil {
 			result.ErrorMsg = err.Error()
 		} else {
-			result.URL = url
+			result.Authors = dataSlice
 		}
 		results = append(results, result)
 	}
@@ -51,30 +51,34 @@ func Search(resource []Resource, query string) ([]searchResult, error) {
 }
 
 // SearchResource loads the cached data and searches for the author.
-// It returns the author URL on success and an empty string if the author was not found.
-func (website Resource) SearchResource(query string) (string, error) {
-	fullURL := website.BaseURL + website.QueryURL
+func (website Resource) SearchResource(query string) ([]authorData, error) {
+	fullQueryURL := website.BaseURL + website.QueryURL
 	cacheFileName := "cache/" + website.Name + "." + website.DataFormat
-	cache, err := loadCache(fullURL, cacheFileName)
+	cache, err := loadCache(fullQueryURL, cacheFileName)
 	if err != nil {
-		return "", err
+		return []authorData{}, err
 	}
 
-	data, err := website.parseCache(cache)
+	rawData, err := website.parseCache(cache)
 	if err != nil {
-		return "", err
+		return []authorData{}, err
 	}
 
-	data, err = website.filterData(data)
+	filteredData, err := website.filterData(rawData)
 	if err != nil {
-		return "", err
+		return []authorData{}, err
 	}
 
-	for _, a := range data {
+	results := []authorData{}
+	for _, a := range filteredData {
 		if strings.Contains(a.Description, query) {
-			return website.BaseURL + a.AuthorURL, nil
+			if strings.HasPrefix(a.AuthorURL, "/") {
+				a.AuthorURL = website.BaseURL + a.AuthorURL
+			} else {
+				a.AuthorURL = website.BaseURL + "/" + a.AuthorURL
+			}
+			results = append(results, a)
 		}
 	}
-
-	return "", nil
+	return results, nil
 }

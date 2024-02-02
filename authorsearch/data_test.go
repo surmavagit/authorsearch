@@ -45,8 +45,11 @@ func TestGetLinkElements(t *testing.T) {
 		t.Fatalf("Expected 3 links, found %d", len(linkSlice))
 	}
 	for i, linkNode := range linkSlice {
-		authorDataStruct := getDataFromHTML(linkNode)
-		if !compareData(authorDataStruct, expectedLinks[i]) {
+		dataString := getDataStringFromHTML(linkNode)
+		authorDataStruct, err := getDataStructFromString(dataString)
+		if err != nil {
+			t.Errorf("cannot split link string into description and url")
+		} else if !compareData(authorDataStruct, expectedLinks[i]) {
 			t.Errorf("Expected Description: %s, URL: %s; Found Description: %s, URL: %s", expectedLinks[i].Description, expectedLinks[i].AuthorURL, authorDataStruct.Description, authorDataStruct.AuthorURL)
 		}
 	}

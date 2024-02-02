@@ -23,11 +23,19 @@ func main() {
 	}
 
 	for _, r := range results {
-		output := r.ErrorMsg + r.URL
-		if output == "" {
-			fmt.Println(r.Resource, "not found")
-		} else {
-			fmt.Println(r.Resource, output)
+
+		if r.ErrorMsg != "" {
+			fmt.Println(r.Resource, r.ErrorMsg)
+			continue
+		}
+
+		numLinks := len(r.Authors)
+		if numLinks == 0 {
+			fmt.Printf("%-10s  [0 of 0]  not found\n", r.Resource)
+			continue
+		}
+		for i, l := range r.Authors {
+			fmt.Printf("%-10s  [%d of %d]  %-30s  %s\n", r.Resource, i+1, numLinks, l.Description, l.AuthorURL)
 		}
 	}
 }
