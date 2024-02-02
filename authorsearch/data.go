@@ -24,9 +24,22 @@ func (website Resource) parseCache(file []byte) ([]authorData, error) {
 			return []authorData{}, errors.New("can't parse html")
 		}
 
+		// get rid of duplicates
 		links := getLinkElements(root)
+		dataMap := map[string]bool{}
 		for _, l := range links {
-			sliceOfData = append(sliceOfData, getDataFromHTML(l))
+			dataString := getDataStringFromHTML(l)
+			if dataString != "" {
+				dataMap[dataString] = false
+			}
+		}
+
+		for i := range dataMap {
+			dataStruct, err := getDataStructFromString(i)
+			if err != nil {
+				return []authorData{}, err
+			}
+			sliceOfData = append(sliceOfData, dataStruct)
 		}
 
 		return sliceOfData, nil
@@ -60,18 +73,33 @@ func getLinkElements(element *html.Node) []*html.Node {
 	return linkElements
 }
 
-// getDataFromHTML takes a pointer to an html node, representing an author,
-// and turns it into a authorData struct
-func getDataFromHTML(link *html.Node) authorData {
-	var author authorData
+// getDataStringFromHTML takes a pointer to an html node, representing an author,
+// and turns it into a string, that combines description and url. Returns an empty string
+// if either description or url is missing.
+func getDataStringFromHTML(link *html.Node) string {
+	if link.FirstChild == nil {
+		return ""
+	}
+	description := strings.ReplaceAll(link.FirstChild.Data, "\n", " ")
+
+	urlLink := ""
 	for _, a := range link.Attr {
-		if a.Key == "href" {
-			author.AuthorURL = a.Val
+		if a.Key == "href" && a.Val == "" {
+			return ""
+		} else if a.Key == "href" {
+			urlLink = a.Val
 			break
 		}
 	}
-	author.Description = link.FirstChild.Data
-	return author
+	return description + ":::" + urlLink
+}
+
+func getDataStructFromString(data string) (authorData, error) {
+	desc, url, ok := strings.Cut(data, ":::")
+	if !ok {
+		return authorData{}, errors.New("wrong Data string: " + data)
+	}
+	return authorData{Description: desc, AuthorURL: url}, nil
 }
 
 func (website Resource) filterData(rawData []authorData) ([]authorData, error) {
