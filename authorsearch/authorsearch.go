@@ -19,41 +19,23 @@ type Resource struct {
 	URLFilter  string // Valid URLs contain this string
 }
 
-type searchResult struct {
-	Resource string
-	Authors  []authorData
-	ErrorMsg string
-}
+var cacheFolder = "cache"
 
-// Search creates a cache folder, if one doesn't exist, and then runs
-// SearchResouce on every resource provided to it.
-func Search(resource []Resource, query string) ([]searchResult, error) {
-	_, err := os.Stat("cache")
+func init() {
+	info, err := os.Stat(cacheFolder)
 	if errors.Is(err, os.ErrNotExist) {
-		err = os.Mkdir("cache", 0755)
+		err = os.Mkdir(cacheFolder, 0755)
 	}
-	if err != nil {
-		return []searchResult{}, err
+	if err != nil || !info.IsDir() {
+		os.Stderr.WriteString("can't access cache folder")
+		os.Exit(1)
 	}
-
-	results := []searchResult{}
-	for _, r := range resource {
-		result := searchResult{Resource: r.Name}
-		dataSlice, err := r.SearchResource(query)
-		if err != nil {
-			result.ErrorMsg = err.Error()
-		} else {
-			result.Authors = dataSlice
-		}
-		results = append(results, result)
-	}
-	return results, nil
 }
 
 // SearchResource loads the cached data and searches for the author.
 func (website Resource) SearchResource(query string) ([]authorData, error) {
 	fullQueryURL := website.BaseURL + website.QueryURL
-	cacheFileName := "cache/" + website.Name + "." + website.DataFormat
+	cacheFileName := cacheFolder + "/" + website.Name + "." + website.DataFormat
 	cache, err := loadCache(fullQueryURL, cacheFileName)
 	if err != nil {
 		return []authorData{}, err
