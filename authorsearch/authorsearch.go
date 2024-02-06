@@ -2,6 +2,7 @@ package authorsearch
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"strings"
 )
@@ -23,11 +24,26 @@ var cacheFolder = "cache"
 
 func init() {
 	info, err := os.Stat(cacheFolder)
+
 	if errors.Is(err, os.ErrNotExist) {
 		err = os.Mkdir(cacheFolder, 0755)
+		if err != nil {
+			errMsg := fmt.Sprintf("can't create '%s' directory", cacheFolder)
+			os.Stderr.WriteString(errMsg)
+			os.Exit(1)
+		}
+		return
 	}
-	if err != nil || !info.IsDir() {
-		os.Stderr.WriteString("can't access cache folder")
+
+	if err != nil {
+		errMsg := fmt.Sprintf("can't access '%s' directory", cacheFolder)
+		os.Stderr.WriteString(errMsg)
+		os.Exit(1)
+	}
+
+	if !info.IsDir() {
+		errMsg := fmt.Sprintf("'%s' is not a directory", cacheFolder)
+		os.Stderr.WriteString(errMsg)
 		os.Exit(1)
 	}
 }
