@@ -1,6 +1,7 @@
 package authorsearch
 
 import (
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -10,26 +11,48 @@ import (
 
 // loadCache loads the contents of the cache file. If it doesn't
 // exist, updateCache function is called.
-func loadCache(fullURL string, cacheFileName string) ([]byte, error) {
+func (website Resource) loadCache() ([]authorData, error) {
+	cacheFileName := cacheFolder + "/" + website.Name + ".json"
 	_, err := os.Stat(cacheFileName)
 	if errors.Is(err, os.ErrNotExist) {
-		err = updateCache(fullURL, cacheFileName)
+		err = website.updateCache()
 	}
 	if err != nil {
-		return []byte{}, err
+		return []authorData{}, err
 	}
 
-	return os.ReadFile(cacheFileName)
+	stream, err := os.ReadFile(cacheFileName)
+	if err != nil {
+		return []authorData{}, err
+	}
+
+	data := []authorData{}
+	err = json.Unmarshal(stream, &data)
+	return data, err
 }
 
 // updateCache carries out an http get request and saves the response body
 // into a file
-func updateCache(fullURL string, cacheFileName string) error {
+func (website Resource) updateCache() error {
+	fullURL := website.BaseURL + website.QueryURL
 	body, err := getResource(fullURL)
 	if err != nil {
 		return err
 	}
-	err = os.WriteFile(cacheFileName, body, 0644)
+
+	data, err := website.parseCache(body)
+	if err != nil {
+		return err
+	}
+	filteredData := filterAndDedupe(data, website.URLFilter)
+
+	stream, err := json.MarshalIndent(filteredData, "", "    ")
+	if err != nil {
+		return err
+	}
+
+	cacheFileName := cacheFolder + "/" + website.Name + ".json"
+	err = os.WriteFile(cacheFileName, []byte(stream), 0644)
 	return err
 }
 
@@ -38,7 +61,7 @@ func getResource(fullURL string) ([]byte, error) {
 		Timeout: 5 * time.Second,
 	}
 	res, err := client.Get(fullURL)
-	defer closeConnection(res)
+	defer closeBody(res)
 
 	if err != nil {
 		return []byte{}, err
@@ -51,10 +74,10 @@ func getResource(fullURL string) ([]byte, error) {
 	return body, err
 }
 
-func closeConnection(res *http.Response) {
+func closeBody(res *http.Response) {
 	err := res.Body.Close()
 	if err != nil {
-		os.Stderr.WriteString("Failed to close connection: " + err.Error())
+		os.Stderr.WriteString("Failed to close response body: " + err.Error())
 		os.Exit(1)
 	}
 }
