@@ -115,5 +115,5 @@ func filterAndDedupe(data []authorData, filter string) []authorData {
 		}
 		uniqueData = append(uniqueData, authorData{Description: desc, AuthorURL: url})
 	}
-	return []authorData{}
+	return uniqueData
 }
