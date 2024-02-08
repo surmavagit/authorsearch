@@ -23,25 +23,15 @@ func (website Resource) parseCache(file []byte) ([]authorData, error) {
 		if root == nil {
 			return []authorData{}, errors.New("can't parse html")
 		}
-
-		// get rid of duplicates
 		links := getLinkElements(root)
-		dataMap := map[string]bool{}
+
 		for _, l := range links {
-			dataString := getDataStringFromHTML(l)
-			if dataString != "" {
-				dataMap[dataString] = false
-			}
+			data := authorData{}
+			data.AuthorURL = getHrefAttr(l)
+			content := getTextContent(l.FirstChild)
+			data.Description = strings.ReplaceAll(content, "\n", " ")
+			sliceOfData = append(sliceOfData, data)
 		}
-
-		for i := range dataMap {
-			dataStruct, err := getDataStructFromString(i)
-			if err != nil {
-				return []authorData{}, err
-			}
-			sliceOfData = append(sliceOfData, dataStruct)
-		}
-
 		return sliceOfData, nil
 	}
 
@@ -55,62 +45,75 @@ func parseHTML(file []byte) *html.Node {
 	return rootNode
 }
 
-// getLinkElements takes a pointer to an html node, recursively goes through all its children and siblings
+// getLinkElements recursively goes through all the children and siblings of the provided html node
 // and returns a slice of pointers to all 'a' html nodes.
 func getLinkElements(element *html.Node) []*html.Node {
-	var linkElements []*html.Node
+	if element == nil {
+		return []*html.Node{}
+	}
 
 	if element.DataAtom == atom.A {
-		linkElements = append(linkElements, element)
-	} else if element.FirstChild != nil {
-		linkElements = append(linkElements, getLinkElements(element.FirstChild)...)
+		return append([]*html.Node{element}, getLinkElements(element.NextSibling)...)
 	}
 
-	if element.NextSibling != nil {
-		linkElements = append(linkElements, getLinkElements(element.NextSibling)...)
-	}
-
-	return linkElements
+	return append(getLinkElements(element.FirstChild), getLinkElements(element.NextSibling)...)
 }
 
-// getDataStringFromHTML takes a pointer to an html node, representing an author,
-// and turns it into a string, that combines description and url. Returns an empty string
-// if either description or url is missing.
-func getDataStringFromHTML(link *html.Node) string {
-	if link.FirstChild == nil {
+// returns the value of the href attribute of the provided html node or empty string
+func getHrefAttr(link *html.Node) string {
+	for _, a := range link.Attr {
+		if a.Key == "href" {
+			return a.Val
+		}
+	}
+	return ""
+}
+
+// getTextContent recursively goes through all the children and siblings of the provided html node
+// and returns their combined text content
+func getTextContent(element *html.Node) string {
+	if element == nil {
 		return ""
 	}
-	description := strings.ReplaceAll(link.FirstChild.Data, "\n", " ")
 
-	urlLink := ""
-	for _, a := range link.Attr {
-		if a.Key == "href" && a.Val == "" {
-			return ""
-		} else if a.Key == "href" {
-			urlLink = a.Val
-			break
-		}
+	if element.Type == html.TextNode {
+		return element.Data + getTextContent(element.NextSibling)
 	}
-	return description + ":::" + urlLink
+
+	return getTextContent(element.FirstChild) + getTextContent(element.NextSibling)
 }
 
-func getDataStructFromString(data string) (authorData, error) {
-	desc, url, ok := strings.Cut(data, ":::")
-	if !ok {
-		return authorData{}, errors.New("wrong Data string: " + data)
+func validData(data authorData, filter string) bool {
+	if data.AuthorURL == "" || data.Description == "" {
+		return false
 	}
-	return authorData{Description: desc, AuthorURL: url}, nil
+	if strings.HasPrefix(data.AuthorURL, "#") {
+		return false
+	}
+	if !strings.Contains(data.AuthorURL, filter) {
+		return false
+	}
+	return true
 }
 
-func (website Resource) filterData(rawData []authorData) ([]authorData, error) {
-	if website.URLFilter == "" {
-		return rawData, nil
-	}
-	var filteredData []authorData
-	for _, d := range rawData {
-		if strings.Contains(d.AuthorURL, website.URLFilter) {
-			filteredData = append(filteredData, d)
+func filterAndDedupe(data []authorData, filter string) []authorData {
+	uniqueData := []authorData{}
+	dataMap := map[string]bool{}
+	separator := ":::"
+
+	for _, d := range data {
+		if validData(d, filter) {
+			dataString := d.Description + separator + d.AuthorURL
+			dataMap[dataString] = false
 		}
 	}
-	return filteredData, nil
+
+	for i := range dataMap {
+		desc, url, ok := strings.Cut(i, separator)
+		if !ok {
+			continue
+		}
+		uniqueData = append(uniqueData, authorData{Description: desc, AuthorURL: url})
+	}
+	return []authorData{}
 }
