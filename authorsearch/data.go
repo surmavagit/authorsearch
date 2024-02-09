@@ -1,13 +1,9 @@
 package authorsearch
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"strings"
-
-	"golang.org/x/net/html"
-	"golang.org/x/net/html/atom"
 )
 
 // parseCache turns a byte stream from a cache file into a slice of authorData structs.
@@ -29,7 +25,7 @@ func (website Resource) parseCache(file []byte) ([]authorData, error) {
 			data := authorData{}
 			data.AuthorURL = getHrefAttr(l)
 			content := getTextContent(l.FirstChild)
-			data.Description = strings.ReplaceAll(content, "\n", " ")
+			data.Description = strings.TrimSpace(strings.ReplaceAll(content, "\n", " "))
 			sliceOfData = append(sliceOfData, data)
 		}
 		return sliceOfData, nil
@@ -38,55 +34,14 @@ func (website Resource) parseCache(file []byte) ([]authorData, error) {
 	return []authorData{}, errors.New("unknown resource data format")
 }
 
-// parseHTML returns a pointer to the root node of html or, if parsing fails, it returns nil
-func parseHTML(file []byte) *html.Node {
-	reader := bytes.NewReader(file)
-	rootNode, _ := html.Parse(reader)
-	return rootNode
-}
-
-// getLinkElements recursively goes through all the children and siblings of the provided html node
-// and returns a slice of pointers to all 'a' html nodes.
-func getLinkElements(element *html.Node) []*html.Node {
-	if element == nil {
-		return []*html.Node{}
-	}
-
-	if element.DataAtom == atom.A {
-		return append([]*html.Node{element}, getLinkElements(element.NextSibling)...)
-	}
-
-	return append(getLinkElements(element.FirstChild), getLinkElements(element.NextSibling)...)
-}
-
-// returns the value of the href attribute of the provided html node or empty string
-func getHrefAttr(link *html.Node) string {
-	for _, a := range link.Attr {
-		if a.Key == "href" {
-			return a.Val
-		}
-	}
-	return ""
-}
-
-// getTextContent recursively goes through all the children and siblings of the provided html node
-// and returns their combined text content
-func getTextContent(element *html.Node) string {
-	if element == nil {
-		return ""
-	}
-
-	if element.Type == html.TextNode {
-		return element.Data + getTextContent(element.NextSibling)
-	}
-
-	return getTextContent(element.FirstChild) + getTextContent(element.NextSibling)
-}
-
+// validData checks the validity of the authorData struct by applying a set of tests.
+// The filter string in the arguments has to be a substring of the data.AuthorURL
+// in order for the struct to be valid.
 func validData(data authorData, filter string) bool {
 	if data.AuthorURL == "" || data.Description == "" {
 		return false
 	}
+	// get rid of links to sections of the same html page
 	if strings.HasPrefix(data.AuthorURL, "#") {
 		return false
 	}
@@ -96,6 +51,10 @@ func validData(data authorData, filter string) bool {
 	return true
 }
 
+// filterAndDedupe takes a slice of authorData structs and returns it after
+// throwing out all invalid and duplicate structs. The filter string
+// in the arguments has to be a substring of the data.AuthorURL in order
+// for the struct to be valid.
 func filterAndDedupe(data []authorData, filter string) []authorData {
 	uniqueData := []authorData{}
 	dataMap := map[string]bool{}
