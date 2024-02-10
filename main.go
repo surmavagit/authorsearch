@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
+
+	"github.com/surmavagit/authorsearchcli/authorsearch"
 )
 
 func main() {
@@ -14,23 +17,38 @@ func main() {
 		os.Exit(1)
 	}
 
+	dataChan := make(chan authorsearch.Resource)
+	wg := sync.WaitGroup{}
 	for _, r := range resources {
-		dataSlice, err := r.SearchResource(searchQuery)
-
-		if err != nil {
-			fmt.Printf("%-10s  %s\n", r.Name, err.Error())
-			continue
+		resource := r
+		wg.Add(1)
+		go func() {
+			dataChan <- resource.SearchResource(searchQuery)
+		}()
+	}
+	go func() {
+		for r := range dataChan {
+			printResults(r)
+			wg.Done()
 		}
+	}()
+	wg.Wait()
+}
 
-		numLinks := len(dataSlice)
-		if numLinks == 0 {
-			fmt.Printf("%-10s  [0 of 0]  not found\n", r.Name)
-			continue
-		}
+func printResults(r authorsearch.Resource) {
+	if r.Error != nil {
+		fmt.Printf("%-10s  %s\n", r.Name, r.Error.Error())
+		return
+	}
 
-		for i, l := range dataSlice {
-			fmt.Printf("%-10s  [%d of %d]  %-30s  %s\n", r.Name, i+1, numLinks, l.Description, l.AuthorURL)
-		}
+	numLinks := len(r.Results)
+	if numLinks == 0 {
+		fmt.Printf("%-10s  [0 of 0]  not found\n", r.Name)
+		return
+	}
+
+	for i, l := range r.Results {
+		fmt.Printf("%-10s  [%d of %d]  %-30s  %s\n", r.Name, i+1, numLinks, l.Description, l.AuthorURL)
 	}
 }
 
