@@ -18,6 +18,8 @@ type Resource struct {
 	QueryURL   string
 	DataFormat string
 	URLFilter  string // Valid URLs contain this string
+	Results    []authorData
+	Error      error
 }
 
 var cacheFolder = "cache"
@@ -49,10 +51,11 @@ func init() {
 }
 
 // SearchResource loads the cached data and searches for the author.
-func (website Resource) SearchResource(query string) ([]authorData, error) {
+func (website Resource) SearchResource(query string) Resource {
 	data, err := website.loadCache()
 	if err != nil {
-		return []authorData{}, err
+		website.Error = err
+		return website
 	}
 
 	results := []authorData{}
@@ -61,7 +64,8 @@ func (website Resource) SearchResource(query string) ([]authorData, error) {
 			results = append(results, a)
 		}
 	}
-	return results, nil
+	website.Results = results
+	return website
 }
 
 func search(authorDesc string, query string) bool {
