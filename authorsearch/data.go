@@ -6,8 +6,8 @@ import (
 	"strings"
 )
 
-// parseCache turns a byte stream from a cache file into a slice of authorData structs.
-func (website Resource) parseCache(file []byte) ([]authorData, error) {
+// readResource turns a byte stream from a response body into a slice of data.
+func (website Resource) readResource(file []byte) ([]authorData, error) {
 	var sliceOfData []authorData
 	if website.DataFormat == "json" {
 		err := json.Unmarshal(file, &sliceOfData)
@@ -24,8 +24,7 @@ func (website Resource) parseCache(file []byte) ([]authorData, error) {
 		for _, l := range links {
 			data := authorData{}
 			data.AuthorURL = getHrefAttr(l)
-			content := getTextContent(l.FirstChild)
-			data.Description = strings.TrimSpace(strings.ReplaceAll(content, "\n", " "))
+			data.Description = getTextContent(l.FirstChild)
 			sliceOfData = append(sliceOfData, data)
 		}
 		return sliceOfData, nil
@@ -34,44 +33,56 @@ func (website Resource) parseCache(file []byte) ([]authorData, error) {
 	return []authorData{}, errors.New("unknown resource data format")
 }
 
-// validData checks the validity of the authorData struct by applying a set of tests.
-// The filter string in the arguments has to be a substring of the data.AuthorURL
-// in order for the struct to be valid.
-func validData(data authorData, filter string) bool {
-	if data.AuthorURL == "" || data.Description == "" {
+// validURL checks the validity of the url by applying a set of tests.
+// The filter string in the arguments has to be a substring of the url
+// in order for it to be valid.
+func validURL(url string, filter string) bool {
+	if url == "" {
 		return false
 	}
 	// get rid of links to sections of the same html page
-	if strings.HasPrefix(data.AuthorURL, "#") {
+	if strings.HasPrefix(url, "#") {
 		return false
 	}
-	if !strings.Contains(data.AuthorURL, filter) {
+	if !strings.Contains(url, filter) {
 		return false
 	}
 	return true
 }
 
 // filterAndDedupe takes a slice of authorData structs and returns it after
-// throwing out all invalid and duplicate structs. The filter string
-// in the arguments has to be a substring of the data.AuthorURL in order
-// for the struct to be valid.
-func filterAndDedupe(data []authorData, filter string) []authorData {
+// throwing out all invalid and duplicate structs.
+func (website Resource) filterAndDedupe(data []authorData) []authorData {
 	uniqueData := []authorData{}
 	dataMap := map[string]bool{}
-	separator := ":::"
+	separator := "%%"
 
 	for _, d := range data {
-		if validData(d, filter) {
-			dataString := d.Description + separator + d.AuthorURL
-			dataMap[dataString] = false
+		if !validURL(d.AuthorURL, website.URLFilter) {
+			continue
 		}
+
+		url := strings.TrimLeft(d.AuthorURL, "/")
+		if url == "" {
+			continue
+		}
+
+		oneLine := strings.ReplaceAll(d.Description, "\n", " ")
+		desc := strings.TrimSpace(oneLine)
+		if desc == "" {
+			continue
+		}
+
+		dataString := url + separator + desc
+		dataMap[dataString] = false
 	}
 
 	for i := range dataMap {
-		desc, url, ok := strings.Cut(i, separator)
+		url, desc, ok := strings.Cut(i, separator)
 		if !ok {
 			continue
 		}
+		url = website.BaseURL + url
 		uniqueData = append(uniqueData, authorData{Description: desc, AuthorURL: url})
 	}
 	return uniqueData

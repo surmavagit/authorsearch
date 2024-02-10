@@ -57,14 +57,13 @@ func (website Resource) SearchResource(query string) ([]authorData, error) {
 
 	results := []authorData{}
 	for _, a := range data {
-		if strings.Contains(a.Description, query) {
-			if strings.HasPrefix(a.AuthorURL, "/") {
-				a.AuthorURL = website.BaseURL + a.AuthorURL
-			} else {
-				a.AuthorURL = website.BaseURL + "/" + a.AuthorURL
-			}
+		if search(a.Description, query) {
 			results = append(results, a)
 		}
 	}
 	return results, nil
+}
+
+func search(authorDesc string, query string) bool {
+	return strings.Contains(authorDesc, query)
 }

@@ -40,11 +40,11 @@ func (website Resource) updateCache() error {
 		return err
 	}
 
-	data, err := website.parseCache(body)
+	data, err := website.readResource(body)
 	if err != nil {
 		return err
 	}
-	filteredData := filterAndDedupe(data, website.URLFilter)
+	filteredData := website.filterAndDedupe(data)
 
 	stream, err := json.MarshalIndent(filteredData, "", "    ")
 	if err != nil {
