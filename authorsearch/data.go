@@ -24,7 +24,14 @@ func (website Resource) readResource(file []byte) ([]authorData, error) {
 		for _, l := range links {
 			data := authorData{}
 			data.AuthorURL = getHrefAttr(l)
-			data.Description = getTextContent(l.FirstChild)
+			if website.DescInParent {
+				if l.Parent == nil {
+					return []authorData{}, errors.New("no parent html element")
+				}
+				data.Description = getTextContent(l.Parent.FirstChild)
+			} else {
+				data.Description = getTextContent(l.FirstChild)
+			}
 			sliceOfData = append(sliceOfData, data)
 		}
 		return sliceOfData, nil

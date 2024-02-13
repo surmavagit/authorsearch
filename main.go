@@ -48,7 +48,7 @@ func printResults(r authorsearch.Resource) {
 	}
 
 	for i, l := range r.Results {
-		fmt.Printf("%-10s  [%d of %d]  %-30s  %s\n", r.Name, i+1, numLinks, l.Description, l.AuthorURL)
+		fmt.Printf("%-10s  [%d of %d]  %-35s  %s\n", r.Name, i+1, numLinks, l.Description, l.AuthorURL)
 	}
 }
 

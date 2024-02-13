@@ -13,13 +13,14 @@ type authorData struct {
 }
 
 type Resource struct {
-	Name       string
-	BaseURL    string
-	QueryURL   string
-	DataFormat string
-	URLFilter  string // Valid URLs contain this string
-	Results    []authorData
-	Error      error
+	Name         string
+	BaseURL      string
+	QueryURL     string
+	DataFormat   string
+	DescInParent bool
+	URLFilter    string // Valid URLs contain this string
+	Results      []authorData
+	Error        error
 }
 
 var cacheFolder = "cache"
