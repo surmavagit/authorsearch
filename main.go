@@ -44,7 +44,7 @@ func main() {
 
 func printResults(r authorsearch.Resource) {
 	if r.Error != nil {
-		fmt.Printf("%-10s  %s\n", r.Name, r.Error.Error())
+		os.Stderr.WriteString(fmt.Sprintf("%-10s  %s\n", r.Name, r.Error.Error()))
 		return
 	}
 
