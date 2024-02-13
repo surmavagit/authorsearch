@@ -1,9 +1,6 @@
 package authorsearch
 
 import (
-	"errors"
-	"fmt"
-	"os"
 	"strings"
 )
 
@@ -23,37 +20,9 @@ type Resource struct {
 	Error        error
 }
 
-var cacheFolder = "cache"
-
-func init() {
-	info, err := os.Stat(cacheFolder)
-
-	if errors.Is(err, os.ErrNotExist) {
-		err = os.Mkdir(cacheFolder, 0755)
-		if err != nil {
-			errMsg := fmt.Sprintf("can't create '%s' directory: %s", cacheFolder, err.Error())
-			os.Stderr.WriteString(errMsg)
-			os.Exit(1)
-		}
-		return
-	}
-
-	if err != nil {
-		errMsg := fmt.Sprintf("can't access '%s' directory: %s", cacheFolder, err.Error())
-		os.Stderr.WriteString(errMsg)
-		os.Exit(1)
-	}
-
-	if !info.IsDir() {
-		errMsg := fmt.Sprintf("'%s' is not a directory", cacheFolder)
-		os.Stderr.WriteString(errMsg)
-		os.Exit(1)
-	}
-}
-
 // SearchResource loads the cached data and searches for the author.
-func (website Resource) SearchResource(query string) Resource {
-	data, err := website.loadCache()
+func (website Resource) SearchResource(query string, cacheDir string) Resource {
+	data, err := website.loadCache(cacheDir)
 	if err != nil {
 		website.Error = err
 		return website

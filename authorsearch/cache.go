@@ -11,11 +11,11 @@ import (
 
 // loadCache loads the contents of the cache file. If it doesn't
 // exist, updateCache function is called.
-func (website Resource) loadCache() ([]authorData, error) {
-	cacheFileName := cacheFolder + "/" + website.Name + ".json"
+func (website Resource) loadCache(cacheDir string) ([]authorData, error) {
+	cacheFileName := cacheDir + "/" + website.Name + ".json"
 	_, err := os.Stat(cacheFileName)
 	if errors.Is(err, os.ErrNotExist) {
-		err = website.updateCache()
+		err = website.updateCache(cacheDir)
 	}
 	if err != nil {
 		return []authorData{}, err
@@ -33,7 +33,7 @@ func (website Resource) loadCache() ([]authorData, error) {
 
 // updateCache carries out an http get request and saves the response body
 // into a file
-func (website Resource) updateCache() error {
+func (website Resource) updateCache(cacheDir string) error {
 	fullURL := website.BaseURL + website.QueryURL
 	body, err := getResource(fullURL)
 	if err != nil {
@@ -51,7 +51,7 @@ func (website Resource) updateCache() error {
 		return err
 	}
 
-	cacheFileName := cacheFolder + "/" + website.Name + ".json"
+	cacheFileName := cacheDir + "/" + website.Name + ".json"
 	err = os.WriteFile(cacheFileName, []byte(stream), 0644)
 	return err
 }
