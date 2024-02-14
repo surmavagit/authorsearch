@@ -4,14 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"strings"
+	"regexp"
 	"sync"
 
 	"github.com/surmavagit/authorsearchcli/authorsearch"
 )
 
 func main() {
-	searchQuery, err := checkInput(os.Args)
+	searchQuery, err := checkInput(os.Args[1:])
 	if err != nil {
 		os.Stderr.WriteString(err.Error())
 		os.Exit(1)
@@ -59,11 +59,58 @@ func printResults(r authorsearch.Resource) {
 	}
 }
 
-func checkInput(query []string) (string, error) {
-	if len(query) <= 1 {
-		return "", errors.New("no search query provided")
+func checkInput(query []string) (authorsearch.Query, error) {
+	if len(query) == 0 {
+		return authorsearch.Query{}, errors.New("no search query provided")
 	}
-	return strings.Join(query[1:], " "), nil
+
+	if len(query) > 3 {
+		return authorsearch.Query{}, errors.New("too many arguments")
+	}
+
+	queryStruct := authorsearch.Query{}
+	for _, a := range query {
+		numeric, err := regexp.MatchString("\\d", a)
+		if err != nil {
+			return authorsearch.Query{}, err
+		}
+
+		nonNumeric, err := regexp.MatchString("\\D", a)
+		if err != nil {
+			return authorsearch.Query{}, err
+		}
+
+		if numeric && nonNumeric {
+			return authorsearch.Query{}, errors.New("invalid argument: numeric and nonnumeric characters")
+		}
+
+		if numeric && queryStruct.Year != "" {
+			return authorsearch.Query{}, errors.New("only one year can be specified")
+		}
+
+		if numeric {
+			queryStruct.Year = a
+			continue
+		}
+
+		if queryStruct.LastName == "" {
+			queryStruct.LastName = a
+			continue
+		}
+
+		if queryStruct.FirstName == "" {
+			queryStruct.FirstName = a
+			continue
+		}
+
+		return authorsearch.Query{}, errors.New("only two names can be specified - last name and first name")
+	}
+
+	if queryStruct.LastName == "" {
+		return authorsearch.Query{}, errors.New("last name has to be specified")
+	}
+
+	return queryStruct, nil
 }
 
 func checkCacheDir(directory string) error {

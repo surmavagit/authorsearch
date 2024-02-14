@@ -9,6 +9,8 @@ var marxists = authorsearch.Resource{
 	DataFormat:   "json",
 	DescInParent: false,
 	URLFilter:    "",
+	FirstName:    true,
+	Year:         false,
 }
 
 var mcmaster = authorsearch.Resource{
@@ -18,6 +20,8 @@ var mcmaster = authorsearch.Resource{
 	DataFormat:   "html",
 	DescInParent: false,
 	URLFilter:    "",
+	FirstName:    true,
+	Year:         false,
 }
 
 var hetwebsite = authorsearch.Resource{
@@ -27,6 +31,8 @@ var hetwebsite = authorsearch.Resource{
 	DataFormat:   "html",
 	DescInParent: true,
 	URLFilter:    "profiles",
+	FirstName:    true,
+	Year:         true,
 }
 
 var taieb = authorsearch.Resource{
@@ -36,6 +42,8 @@ var taieb = authorsearch.Resource{
 	DataFormat:   "html",
 	DescInParent: false,
 	URLFilter:    "",
+	FirstName:    false,
+	Year:         false,
 }
 
 var resources = []authorsearch.Resource{marxists, mcmaster, hetwebsite, taieb}
