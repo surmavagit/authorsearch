@@ -57,6 +57,3 @@ func (website Resource) search(authorDesc string, query Query) bool {
 
 	return !website.Year || strings.Contains(authorDesc, query.Year)
 }
-
-func (website Resource) queryCompatible(query Query) {
-}
