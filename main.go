@@ -69,26 +69,28 @@ func checkInput(query []string) (authorsearch.Query, error) {
 	}
 
 	queryStruct := authorsearch.Query{}
+	numeric, err := regexp.Compile(`\d`)
+	if err != nil {
+		return authorsearch.Query{}, err
+	}
+	nonNumeric, err := regexp.Compile(`\D`)
+	if err != nil {
+		return authorsearch.Query{}, err
+	}
+
 	for _, a := range query {
-		numeric, err := regexp.MatchString("\\d", a)
-		if err != nil {
-			return authorsearch.Query{}, err
-		}
+		num := numeric.MatchString(a)
+		nonNum := nonNumeric.MatchString(a)
 
-		nonNumeric, err := regexp.MatchString("\\D", a)
-		if err != nil {
-			return authorsearch.Query{}, err
-		}
-
-		if numeric && nonNumeric {
+		if num && nonNum {
 			return authorsearch.Query{}, errors.New("invalid argument: numeric and nonnumeric characters")
 		}
 
-		if numeric && queryStruct.Year != "" {
+		if num && queryStruct.Year != "" {
 			return authorsearch.Query{}, errors.New("only one year can be specified")
 		}
 
-		if numeric {
+		if num {
 			queryStruct.Year = a
 			continue
 		}
