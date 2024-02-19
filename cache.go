@@ -9,18 +9,16 @@ import (
 	"time"
 )
 
-// loadCache loads the contents of the cache file. If it doesn't
-// exist, updateCache function is called.
-func (website resource) loadCache(cacheDir string) ([]authorData, error) {
-	cacheFileName := cacheDir + "/" + website.Name + ".json"
+// needUpdate returns true and error if the cache file with the specified
+// name doesn't exist. It returns false if either there is no error or
+// if there is a different error
+func needUpdate(cacheFileName string) (bool, error) {
 	_, err := os.Stat(cacheFileName)
-	if errors.Is(err, os.ErrNotExist) {
-		err = website.updateCache(cacheDir)
-	}
-	if err != nil {
-		return []authorData{}, err
-	}
+	return errors.Is(err, os.ErrNotExist), err
+}
 
+// loadCache reads the cache file and unmarshals the json
+func loadCache(cacheFileName string) ([]authorData, error) {
 	stream, err := os.ReadFile(cacheFileName)
 	if err != nil {
 		return []authorData{}, err
@@ -33,7 +31,7 @@ func (website resource) loadCache(cacheDir string) ([]authorData, error) {
 
 // updateCache carries out an http get request and saves the response body
 // into a file
-func (website resource) updateCache(cacheDir string) error {
+func (website resource) updateCache(cacheDir string, cacheFileName string) error {
 	fullURL := website.BaseURL + website.QueryURL
 	body, err := getResource(fullURL)
 	if err != nil {
@@ -51,7 +49,6 @@ func (website resource) updateCache(cacheDir string) error {
 		return err
 	}
 
-	cacheFileName := cacheDir + "/" + website.Name + ".json"
 	err = os.WriteFile(cacheFileName, []byte(stream), 0644)
 	return err
 }
