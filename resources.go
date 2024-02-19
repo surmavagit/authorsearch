@@ -1,8 +1,6 @@
 package main
 
-import "github.com/surmavagit/authorsearchcli/authorsearch"
-
-var marxists = authorsearch.Resource{
+var marxists = resource{
 	Name:         "marxists",
 	BaseURL:      "https://www.marxists.org/",
 	QueryURL:     "admin/js/data/authors.json",
@@ -13,7 +11,7 @@ var marxists = authorsearch.Resource{
 	Year:         false,
 }
 
-var mcmaster = authorsearch.Resource{
+var mcmaster = resource{
 	Name:         "mcmaster",
 	BaseURL:      "https://socialsciences.mcmaster.ca/econ/ugcm/3ll3/",
 	QueryURL:     "authors.html",
@@ -24,7 +22,7 @@ var mcmaster = authorsearch.Resource{
 	Year:         false,
 }
 
-var hetwebsite = authorsearch.Resource{
+var hetwebsite = resource{
 	Name:         "hetwebsite",
 	BaseURL:      "https://www.hetwebsite.net/het/",
 	QueryURL:     "alphabet.htm",
@@ -35,7 +33,7 @@ var hetwebsite = authorsearch.Resource{
 	Year:         true,
 }
 
-var taieb = authorsearch.Resource{
+var taieb = resource{
 	Name:         "taieb",
 	BaseURL:      "https://www.taieb.net/",
 	QueryURL:     "menu/index.html",
@@ -46,4 +44,4 @@ var taieb = authorsearch.Resource{
 	Year:         false,
 }
 
-var resources = []authorsearch.Resource{marxists, mcmaster, hetwebsite, taieb}
+var resources = []resource{marxists, mcmaster, hetwebsite, taieb}

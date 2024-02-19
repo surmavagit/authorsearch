@@ -6,8 +6,6 @@ import (
 	"os"
 	"regexp"
 	"sync"
-
-	"github.com/surmavagit/authorsearchcli/authorsearch"
 )
 
 func main() {
@@ -24,13 +22,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	dataChan := make(chan authorsearch.Resource)
+	dataChan := make(chan resource)
 	wg := sync.WaitGroup{}
 	for _, r := range resources {
 		resource := r
 		wg.Add(1)
 		go func() {
-			dataChan <- resource.SearchResource(searchQuery, cacheDirectory)
+			dataChan <- resource.searchResource(searchQuery, cacheDirectory)
 		}()
 	}
 	go func() {
@@ -42,7 +40,7 @@ func main() {
 	wg.Wait()
 }
 
-func printResults(r authorsearch.Resource) {
+func printResults(r resource) {
 	if r.Error != nil {
 		os.Stderr.WriteString(fmt.Sprintf("%-10s  %s\n", r.Name, r.Error.Error()))
 		return
@@ -59,35 +57,35 @@ func printResults(r authorsearch.Resource) {
 	}
 }
 
-func checkInput(query []string) (authorsearch.Query, error) {
-	if len(query) == 0 {
-		return authorsearch.Query{}, errors.New("no search query provided")
+func checkInput(input []string) (query, error) {
+	if len(input) == 0 {
+		return query{}, errors.New("no search query provided")
 	}
 
-	if len(query) > 3 {
-		return authorsearch.Query{}, errors.New("too many arguments")
+	if len(input) > 3 {
+		return query{}, errors.New("too many arguments")
 	}
 
-	queryStruct := authorsearch.Query{}
+	queryStruct := query{}
 	numeric, err := regexp.Compile(`\d`)
 	if err != nil {
-		return authorsearch.Query{}, err
+		return query{}, err
 	}
 	nonNumeric, err := regexp.Compile(`\D`)
 	if err != nil {
-		return authorsearch.Query{}, err
+		return query{}, err
 	}
 
-	for _, a := range query {
+	for _, a := range input {
 		num := numeric.MatchString(a)
 		nonNum := nonNumeric.MatchString(a)
 
 		if num && nonNum {
-			return authorsearch.Query{}, errors.New("invalid argument: numeric and nonnumeric characters")
+			return query{}, errors.New("invalid argument: numeric and nonnumeric characters")
 		}
 
 		if num && queryStruct.Year != "" {
-			return authorsearch.Query{}, errors.New("only one year can be specified")
+			return query{}, errors.New("only one year can be specified")
 		}
 
 		if num {
@@ -105,11 +103,11 @@ func checkInput(query []string) (authorsearch.Query, error) {
 			continue
 		}
 
-		return authorsearch.Query{}, errors.New("only two names can be specified - last name and first name")
+		return query{}, errors.New("only two names can be specified - last name and first name")
 	}
 
 	if queryStruct.LastName == "" {
-		return authorsearch.Query{}, errors.New("last name has to be specified")
+		return query{}, errors.New("last name has to be specified")
 	}
 
 	return queryStruct, nil

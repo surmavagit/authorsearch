@@ -1,4 +1,4 @@
-package authorsearch
+package main
 
 import (
 	"bytes"

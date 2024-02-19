@@ -1,4 +1,4 @@
-package authorsearch
+package main
 
 import (
 	"strings"
@@ -9,7 +9,7 @@ type authorData struct {
 	AuthorURL   string `json:"href"`
 }
 
-type Resource struct {
+type resource struct {
 	Name         string
 	BaseURL      string
 	QueryURL     string
@@ -22,14 +22,14 @@ type Resource struct {
 	Error        error
 }
 
-type Query struct {
+type query struct {
 	LastName  string
 	FirstName string
 	Year      string
 }
 
-// SearchResource loads the cached data and searches for the author.
-func (website Resource) SearchResource(query Query, cacheDir string) Resource {
+// searchResource loads the cached data and searches for the author.
+func (website resource) searchResource(query query, cacheDir string) resource {
 	data, err := website.loadCache(cacheDir)
 	if err != nil {
 		website.Error = err
@@ -46,7 +46,7 @@ func (website Resource) SearchResource(query Query, cacheDir string) Resource {
 	return website
 }
 
-func (website Resource) search(authorDesc string, query Query) bool {
+func (website resource) search(authorDesc string, query query) bool {
 	if !strings.Contains(authorDesc, query.LastName) {
 		return false
 	}

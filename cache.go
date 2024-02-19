@@ -1,4 +1,4 @@
-package authorsearch
+package main
 
 import (
 	"encoding/json"
@@ -11,7 +11,7 @@ import (
 
 // loadCache loads the contents of the cache file. If it doesn't
 // exist, updateCache function is called.
-func (website Resource) loadCache(cacheDir string) ([]authorData, error) {
+func (website resource) loadCache(cacheDir string) ([]authorData, error) {
 	cacheFileName := cacheDir + "/" + website.Name + ".json"
 	_, err := os.Stat(cacheFileName)
 	if errors.Is(err, os.ErrNotExist) {
@@ -33,7 +33,7 @@ func (website Resource) loadCache(cacheDir string) ([]authorData, error) {
 
 // updateCache carries out an http get request and saves the response body
 // into a file
-func (website Resource) updateCache(cacheDir string) error {
+func (website resource) updateCache(cacheDir string) error {
 	fullURL := website.BaseURL + website.QueryURL
 	body, err := getResource(fullURL)
 	if err != nil {

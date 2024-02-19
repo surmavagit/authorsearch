@@ -1,4 +1,4 @@
-package authorsearch
+package main
 
 import (
 	"encoding/json"
@@ -7,7 +7,7 @@ import (
 )
 
 // readResource turns a byte stream from a response body into a slice of data.
-func (website Resource) readResource(file []byte) ([]authorData, error) {
+func (website resource) readResource(file []byte) ([]authorData, error) {
 	var sliceOfData []authorData
 	if website.DataFormat == "json" {
 		err := json.Unmarshal(file, &sliceOfData)
@@ -59,7 +59,7 @@ func validURL(url string, filter string) bool {
 
 // filterAndDedupe takes a slice of authorData structs and returns it after
 // throwing out all invalid and duplicate structs.
-func (website Resource) filterAndDedupe(data []authorData) []authorData {
+func (website resource) filterAndDedupe(data []authorData) []authorData {
 	uniqueData := []authorData{}
 	dataMap := map[string]bool{}
 	separator := "%%"

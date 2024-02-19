@@ -1,4 +1,4 @@
-package authorsearch
+package main
 
 import (
 	"encoding/json"
@@ -7,7 +7,7 @@ import (
 )
 
 func TestParseCache(t *testing.T) {
-	website := Resource{DataFormat: "json"}
+	website := resource{DataFormat: "json"}
 	expectedStruct := authorData{Description: "author name", AuthorURL: "www.example.com"}
 	jsonToTest, err := json.Marshal([]authorData{expectedStruct})
 	if err != nil {
