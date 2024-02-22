@@ -6,10 +6,17 @@ import (
 	"os"
 	"regexp"
 	"sync"
+
+	flag "github.com/spf13/pflag"
 )
 
 func main() {
-	searchQuery, err := checkInput(os.Args[1:])
+	verbose := flag.BoolP("verbose", "v", false, "include 'not found' results")
+	nonum := flag.BoolP("no-numbers", "n", false, "do not print the total number of results per resource")
+	nodesc := flag.BoolP("no-description", "d", false, "do not print result description")
+	flag.Parse()
+
+	searchQuery, err := checkInput(flag.Args())
 	if err != nil {
 		os.Stderr.WriteString(err.Error())
 		os.Exit(1)
@@ -33,28 +40,11 @@ func main() {
 	}
 	go func() {
 		for r := range dataChan {
-			printResults(r)
+			printResults(r, *verbose, *nonum, *nodesc)
 			wg.Done()
 		}
 	}()
 	wg.Wait()
-}
-
-func printResults(r resource) {
-	if r.Error != nil {
-		os.Stderr.WriteString(fmt.Sprintf("%-10s  %s\n", r.Name, r.Error.Error()))
-		return
-	}
-
-	numLinks := len(r.Results)
-	if numLinks == 0 {
-		fmt.Printf("%-10s  [0 of 0]  not found\n", r.Name)
-		return
-	}
-
-	for i, l := range r.Results {
-		fmt.Printf("%-10s  [%d of %d]  %-35s  %s\n", r.Name, i+1, numLinks, l.Description, l.AuthorURL)
-	}
 }
 
 func checkInput(input []string) (query, error) {
