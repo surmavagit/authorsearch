@@ -21,53 +21,20 @@ func (website resource) searchComplexResource(query query, cacheDir string) reso
 		return website
 	}
 
+	// load history and search
 	history := records{}
 	if !noHistory {
-		// load history
 		err := loadFileJSON(histFile, &history)
 		if err != nil {
 			website.Error = err
 			return website
 		}
 
-		// search in history
-
-		last, ok := history[query.LastName]
-		if ok {
-			if last == nil || query.FirstName == "" && query.Year == "" {
-				website.Results = last
-				return website
-			}
+		found, data := searchInHistory(history, query)
+		if found {
+			website.Results = data
+			return website
 		}
-
-		if query.FirstName != "" {
-			first, ok := history[query.LastName+" "+query.FirstName]
-			if ok {
-				if first == nil || query.Year == "" {
-					website.Results = first
-					return website
-				}
-			}
-		}
-
-		if query.Year != "" {
-			year, ok := history[query.LastName+" "+query.Year]
-			if ok {
-				if year == nil || query.FirstName == "" {
-					website.Results = year
-					return website
-				}
-			}
-		}
-
-		if query.FirstName != "" && query.Year != "" {
-			full, ok := history[query.LastName+" "+query.FirstName+" "+query.Year]
-			if ok {
-				website.Results = full
-				return website
-			}
-		}
-
 	}
 
 	// query and analyze result
@@ -104,4 +71,40 @@ func (website resource) searchComplexResource(query query, cacheDir string) reso
 	}
 
 	return website
+}
+
+func searchInHistory(history records, query query) (bool, []authorData) {
+	last, ok := history[query.LastName]
+	if ok {
+		if last == nil || query.FirstName == "" && query.Year == "" {
+			return true, last
+		}
+	}
+
+	if query.FirstName != "" {
+		first, ok := history[query.LastName+" "+query.FirstName]
+		if ok {
+			if first == nil || query.Year == "" {
+				return true, first
+			}
+		}
+	}
+
+	if query.Year != "" {
+		year, ok := history[query.LastName+" "+query.Year]
+		if ok {
+			if year == nil || query.FirstName == "" {
+				return true, year
+			}
+		}
+	}
+
+	if query.FirstName != "" && query.Year != "" {
+		full, ok := history[query.LastName+" "+query.FirstName+" "+query.Year]
+		if ok {
+			return true, full
+		}
+	}
+
+	return false, nil
 }
