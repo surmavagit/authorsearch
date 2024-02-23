@@ -27,22 +27,23 @@ func printResults(r resource, verbose bool, nonum bool, nodesc bool) {
 	}
 
 	for i, l := range r.Results {
+		url := r.BaseURL + l.AuthorURL
 		if nonum && nodesc {
-			fmt.Println(formatName(r.Name), l.AuthorURL)
+			fmt.Println(formatName(r.Name), url)
 			continue
 		}
 
 		if nonum {
-			fmt.Println(formatName(r.Name), formatDesc(l.Description, nonum), l.AuthorURL)
+			fmt.Println(formatName(r.Name), formatDesc(l.Description, nonum), url)
 			continue
 		}
 
 		num := fmt.Sprintf("[%d of %d]", i+1, numLinks)
 		if nodesc {
-			fmt.Println(formatName(r.Name), formatNum(num), l.AuthorURL)
+			fmt.Println(formatName(r.Name), formatNum(num), url)
 			continue
 		}
-		fmt.Println(formatName(r.Name), formatNum(num), formatDesc(l.Description, nonum), l.AuthorURL)
+		fmt.Println(formatName(r.Name), formatNum(num), formatDesc(l.Description, nonum), url)
 	}
 }
 

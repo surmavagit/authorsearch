@@ -90,7 +90,6 @@ func (website resource) dedupe(data []authorData) []authorData {
 		if !ok {
 			continue
 		}
-		url = website.BaseURL + url
 		uniqueData = append(uniqueData, authorData{Description: desc, AuthorURL: url})
 	}
 	return uniqueData
