@@ -14,38 +14,41 @@ func fileNotExist(fileName string) (bool, error) {
 	return errors.Is(err, os.ErrNotExist), err
 }
 
-// loadFileJSON reads the cache file and unmarshals the json
-func loadFileJSON(fileName string) ([]authorData, error) {
+// loadFileJSON reads the cache file and unmarshals the json into the target
+func loadFileJSON(fileName string, target interface{}) error {
 	stream, err := os.ReadFile(fileName)
 	if err != nil {
-		return []authorData{}, err
+		return err
 	}
 
-	data := []authorData{}
-	err = json.Unmarshal(stream, &data)
-	return data, err
+	err = json.Unmarshal(stream, target)
+	return err
+}
+
+// writeFileJSON turns source into indented JSON and writes it into file
+func writeFileJSON(fileName string, source any) error {
+	stream, err := json.MarshalIndent(source, "", "    ")
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(fileName, []byte(stream), 0644)
 }
 
 // updateCache carries out an http get request and saves the response body
 // into a file
-func (website resource) updateCache(cacheDir string, cacheFileName string) error {
+func (website resource) updateCache(cacheDir string, cacheFileName string) ([]authorData, error) {
 	fullURL := website.BaseURL + website.QueryURL
 	body, err := getResource(fullURL)
 	if err != nil {
-		return err
+		return []authorData{}, err
 	}
 
 	data, err := website.readResource(body)
 	if err != nil {
-		return err
+		return []authorData{}, err
 	}
 	filteredData := website.dedupe(data)
 
-	stream, err := json.MarshalIndent(filteredData, "", "    ")
-	if err != nil {
-		return err
-	}
-
-	err = os.WriteFile(cacheFileName, []byte(stream), 0644)
-	return err
+	return filteredData, writeFileJSON(cacheFileName, filteredData)
 }

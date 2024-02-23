@@ -18,20 +18,23 @@ type query struct {
 // searchResource loads the cached data and searches for the author.
 func (website resource) searchResource(query query, cacheDir string) resource {
 	cacheFileName := cacheDir + "/" + website.Name + ".json"
+	data := []authorData{}
 
 	update, err := fileNotExist(cacheFileName)
 	if update {
-		err = website.updateCache(cacheDir, cacheFileName)
+		data, err = website.updateCache(cacheDir, cacheFileName)
 	}
 	if err != nil {
 		website.Error = err
 		return website
 	}
 
-	data, err := loadFileJSON(cacheFileName)
-	if err != nil {
-		website.Error = err
-		return website
+	if !update {
+		err = loadFileJSON(cacheFileName, &data)
+		if err != nil {
+			website.Error = err
+			return website
+		}
 	}
 
 	results := []authorData{}
