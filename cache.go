@@ -3,10 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"io"
-	"net/http"
 	"os"
-	"time"
 )
 
 // needUpdate returns true and error if the cache file with the specified
@@ -51,30 +48,4 @@ func (website resource) updateCache(cacheDir string, cacheFileName string) error
 
 	err = os.WriteFile(cacheFileName, []byte(stream), 0644)
 	return err
-}
-
-func getResource(fullURL string) ([]byte, error) {
-	client := http.Client{
-		Timeout: 5 * time.Second,
-	}
-	res, err := client.Get(fullURL)
-	defer closeBody(res)
-
-	if err != nil {
-		return []byte{}, err
-	}
-	if res.StatusCode != 200 {
-		return []byte{}, errors.New("Response status: " + res.Status)
-	}
-
-	body, err := io.ReadAll(res.Body)
-	return body, err
-}
-
-func closeBody(res *http.Response) {
-	err := res.Body.Close()
-	if err != nil {
-		os.Stderr.WriteString("Failed to close response body: " + err.Error())
-		os.Exit(1)
-	}
 }
