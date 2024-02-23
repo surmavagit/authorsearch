@@ -34,8 +34,14 @@ func main() {
 	for _, r := range resources {
 		resource := r
 		wg.Add(1)
+		if !resource.Complex {
+			go func() {
+				dataChan <- resource.searchResource(searchQuery, cacheDirectory)
+			}()
+			continue
+		}
 		go func() {
-			dataChan <- resource.searchResource(searchQuery, cacheDirectory)
+			dataChan <- resource.searchComplexResource(searchQuery)
 		}()
 	}
 	go func() {

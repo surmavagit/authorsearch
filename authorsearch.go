@@ -9,19 +9,6 @@ type authorData struct {
 	AuthorURL   string `json:"href"`
 }
 
-type resource struct {
-	Name         string
-	BaseURL      string
-	QueryURL     string
-	DataFormat   string // json or html
-	DescInParent bool   // Location of the full description in HTML document relative to the <a> tag
-	URLFilter    string // Valid URLs contain this string
-	FirstName    bool
-	Year         bool
-	Results      []authorData
-	Error        error
-}
-
 type query struct {
 	LastName  string
 	FirstName string
