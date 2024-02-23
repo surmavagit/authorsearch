@@ -24,6 +24,15 @@ func (website resource) readResource(file []byte) ([]authorData, error) {
 		for _, l := range links {
 			data := authorData{}
 			data.AuthorURL = getHrefAttr(l)
+			if !validURL(data.AuthorURL, website.URLFilter) {
+				continue
+			}
+
+			data.AuthorURL = strings.TrimLeft(data.AuthorURL, "/")
+			if data.AuthorURL == "" {
+				continue
+			}
+
 			if website.DescInParent {
 				if l.Parent == nil {
 					return []authorData{}, errors.New("no parent html element")
@@ -32,6 +41,13 @@ func (website resource) readResource(file []byte) ([]authorData, error) {
 			} else {
 				data.Description = getTextContent(l.FirstChild)
 			}
+
+			oneLine := strings.ReplaceAll(data.Description, "\n", " ")
+			data.Description = strings.Join(strings.Fields(oneLine), " ")
+			if data.Description == "" {
+				continue
+			}
+
 			sliceOfData = append(sliceOfData, data)
 		}
 		return sliceOfData, nil
@@ -59,28 +75,13 @@ func validURL(url string, filter string) bool {
 
 // filterAndDedupe takes a slice of authorData structs and returns it after
 // throwing out all invalid and duplicate structs.
-func (website resource) filterAndDedupe(data []authorData) []authorData {
+func (website resource) dedupe(data []authorData) []authorData {
 	uniqueData := []authorData{}
 	dataMap := map[string]bool{}
 	separator := "%%"
 
 	for _, d := range data {
-		if !validURL(d.AuthorURL, website.URLFilter) {
-			continue
-		}
-
-		url := strings.TrimLeft(d.AuthorURL, "/")
-		if url == "" {
-			continue
-		}
-
-		oneLine := strings.ReplaceAll(d.Description, "\n", " ")
-		desc := strings.TrimSpace(oneLine)
-		if desc == "" {
-			continue
-		}
-
-		dataString := url + separator + desc
+		dataString := d.AuthorURL + separator + d.Description
 		dataMap[dataString] = false
 	}
 
