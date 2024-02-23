@@ -41,7 +41,7 @@ func main() {
 			continue
 		}
 		go func() {
-			dataChan <- resource.searchComplexResource(searchQuery)
+			dataChan <- resource.searchComplexResource(searchQuery, cacheDirectory)
 		}()
 	}
 	go func() {
