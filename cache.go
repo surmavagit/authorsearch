@@ -6,17 +6,17 @@ import (
 	"os"
 )
 
-// needUpdate returns true and error if the cache file with the specified
+// fileNotExist returns true and error if the cache file with the specified
 // name doesn't exist. It returns false if either there is no error or
 // if there is a different error
-func needUpdate(cacheFileName string) (bool, error) {
-	_, err := os.Stat(cacheFileName)
+func fileNotExist(fileName string) (bool, error) {
+	_, err := os.Stat(fileName)
 	return errors.Is(err, os.ErrNotExist), err
 }
 
-// loadCache reads the cache file and unmarshals the json
-func loadCache(cacheFileName string) ([]authorData, error) {
-	stream, err := os.ReadFile(cacheFileName)
+// loadFileJSON reads the cache file and unmarshals the json
+func loadFileJSON(fileName string) ([]authorData, error) {
+	stream, err := os.ReadFile(fileName)
 	if err != nil {
 		return []authorData{}, err
 	}
