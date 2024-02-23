@@ -39,7 +39,7 @@ func (website resource) updateCache(cacheDir string, cacheFileName string) error
 	if err != nil {
 		return err
 	}
-	filteredData := website.filterAndDedupe(data)
+	filteredData := website.dedupe(data)
 
 	stream, err := json.MarshalIndent(filteredData, "", "    ")
 	if err != nil {
