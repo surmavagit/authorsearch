@@ -19,7 +19,7 @@ type query struct {
 func (website resource) searchResource(query query, cacheDir string) resource {
 	cacheFileName := cacheDir + "/" + website.Name + ".json"
 
-	update, err := needUpdate(cacheFileName)
+	update, err := fileNotExist(cacheFileName)
 	if update {
 		err = website.updateCache(cacheDir, cacheFileName)
 	}
@@ -28,7 +28,7 @@ func (website resource) searchResource(query query, cacheDir string) resource {
 		return website
 	}
 
-	data, err := loadCache(cacheFileName)
+	data, err := loadFileJSON(cacheFileName)
 	if err != nil {
 		website.Error = err
 		return website
