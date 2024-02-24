@@ -59,7 +59,17 @@ func (website resource) searchComplexResource(query query, cacheDir string) reso
 		return website
 	}
 
-	website.Results = data
+	filteredData := []authorData{}
+	// manually filter by year if there is no automatic filter
+	if !website.Year {
+		for _, d := range data {
+			if strings.Contains(d.Description, query.Year) {
+				filteredData = append(filteredData, d)
+			}
+		}
+	}
+
+	website.Results = filteredData
 
 	// update history
 	queryString := strings.Join(queryTerms, " ")
