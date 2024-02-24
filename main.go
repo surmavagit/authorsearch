@@ -9,6 +9,13 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
+type result struct {
+	Name    string
+	BaseURL string
+	Data    []authorData
+	Error   error
+}
+
 func main() {
 	verbose := flag.BoolP("verbose", "v", false, "include 'not found' results")
 	nonum := flag.BoolP("no-numbers", "n", false, "do not print the total number of results per resource")
@@ -28,13 +35,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	dataChan := make(chan resource)
+	dataChan := make(chan result)
 	wg := sync.WaitGroup{}
 	wg.Add(len(resources))
 	for _, r := range resources {
 		resource := r
 		go func() {
-			dataChan <- resource.searchResource(searchQuery, cacheDirectory)
+			data, err := resource.searchResource(searchQuery, cacheDirectory)
+			dataChan <- result{resource.Name, resource.BaseURL, data, err}
 		}()
 	}
 	go func() {

@@ -10,39 +10,38 @@ type authorData struct {
 }
 
 // searchResource loads the cached data and searches for the author.
-func (website resource) searchResource(query query, cacheDir string) resource {
+func (website resource) searchResource(query query, cacheDir string) (data []authorData, err error) {
 	if website.Complex {
 		return website.searchComplexResource(query, cacheDir)
 	}
 
 	cacheFileName := cacheDir + "/" + website.Name + ".json"
-	data := []authorData{}
 
 	update, err := fileNotExist(cacheFileName)
+	if err != nil {
+		return []authorData{}, err
+	}
+
 	if update {
-		data, err = website.updateCache(cacheDir, cacheFileName)
+		data, err = website.getDataFromResource(cacheDir, cacheFileName)
+	} else {
+		err = loadFileJSON(cacheFileName, &data)
 	}
 	if err != nil {
-		website.Error = err
-		return website
+		return []authorData{}, err
 	}
 
-	if !update {
-		err = loadFileJSON(cacheFileName, &data)
-		if err != nil {
-			website.Error = err
-			return website
-		}
-	}
+	return website.filterRelevant(data, query), writeFileJSON(cacheFileName, data)
+}
 
+func (website resource) filterRelevant(data []authorData, query query) []authorData {
 	results := []authorData{}
 	for _, a := range data {
 		if website.match(a.Description, query) {
 			results = append(results, a)
 		}
 	}
-	website.Results = results
-	return website
+	return results
 }
 
 func (website resource) match(authorDesc string, query query) bool {
@@ -59,7 +58,7 @@ func (website resource) match(authorDesc string, query query) bool {
 
 // updateCache carries out an http get request and saves the response body
 // into a file
-func (website resource) updateCache(cacheDir string, cacheFileName string) ([]authorData, error) {
+func (website resource) getDataFromResource(cacheDir string, cacheFileName string) ([]authorData, error) {
 	fullURL := website.BaseURL + website.QueryURL
 	body, err := getResource(fullURL)
 	if err != nil {
@@ -70,7 +69,6 @@ func (website resource) updateCache(cacheDir string, cacheFileName string) ([]au
 	if err != nil {
 		return []authorData{}, err
 	}
-	filteredData := website.dedupe(data)
 
-	return filteredData, writeFileJSON(cacheFileName, filteredData)
+	return website.dedupe(data), nil
 }

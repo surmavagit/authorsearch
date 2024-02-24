@@ -7,12 +7,14 @@ import (
 	"os"
 )
 
-// fileNotExist returns true and error if the cache file with the specified
-// name doesn't exist. It returns false if either there is no error or
-// if there is a different error
+// fileNotExist returns true and nil if the cache file with the specified
+// name doesn't exist. Otherwise returns false and error, if there is one.
 func fileNotExist(fileName string) (bool, error) {
 	_, err := os.Stat(fileName)
-	return errors.Is(err, os.ErrNotExist), err
+	if errors.Is(err, os.ErrNotExist) {
+		return true, nil
+	}
+	return false, err
 }
 
 // loadFileJSON reads the cache file and unmarshals the json into the target

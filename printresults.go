@@ -5,13 +5,13 @@ import (
 	"os"
 )
 
-func printResults(r resource, verbose bool, nonum bool, nodesc bool) {
+func printResults(r result, verbose bool, nonum bool, nodesc bool) {
 	if r.Error != nil {
 		os.Stderr.WriteString(fmt.Sprintln(formatName(r.Name), r.Error.Error()))
 		return
 	}
 
-	numLinks := len(r.Results)
+	numLinks := len(r.Data)
 	if numLinks == 0 && !verbose {
 		return
 	}
@@ -26,7 +26,7 @@ func printResults(r resource, verbose bool, nonum bool, nodesc bool) {
 		return
 	}
 
-	for i, l := range r.Results {
+	for i, l := range r.Data {
 		url := r.BaseURL + l.AuthorURL
 		if nonum && nodesc {
 			fmt.Println(formatName(r.Name), url)

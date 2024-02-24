@@ -1,13 +1,12 @@
 package main
 
 import (
-	"os"
 	"strings"
 )
 
 type records map[string][]authorData
 
-func (website resource) searchComplexResource(query query, cacheDir string) resource {
+func (website resource) searchComplexResource(query query, cacheDir string) (data []authorData, err error) {
 	// normalise query - only for complex resources
 	query.LastName = strings.ToLower(query.LastName)
 	query.FirstName = strings.ToLower(query.FirstName)
@@ -15,9 +14,8 @@ func (website resource) searchComplexResource(query query, cacheDir string) reso
 	// check history
 	histFile := cacheDir + "/" + website.Name + "_" + query.LastName + ".json"
 	noHistory, err := fileNotExist(histFile)
-	if err != nil && !noHistory {
-		website.Error = err
-		return website
+	if err != nil {
+		return []authorData{}, err
 	}
 
 	// load history and search
@@ -25,14 +23,12 @@ func (website resource) searchComplexResource(query query, cacheDir string) reso
 	if !noHistory {
 		err := loadFileJSON(histFile, &history)
 		if err != nil {
-			website.Error = err
-			return website
+			return []authorData{}, err
 		}
 
 		found, data := searchInHistory(history, query)
 		if found {
-			website.Results = data
-			return website
+			return data, nil
 		}
 	}
 
@@ -49,37 +45,29 @@ func (website resource) searchComplexResource(query query, cacheDir string) reso
 	fullURL := website.BaseURL + website.QueryURL + formatQuery
 	body, err := getResource(fullURL)
 	if err != nil {
-		website.Error = err
-		return website
+		return []authorData{}, err
 	}
 
-	data, err := website.readResource(body)
+	rawData, err := website.readResource(body)
 	if err != nil {
-		website.Error = err
-		return website
+		return []authorData{}, err
 	}
 
 	filteredData := []authorData{}
 	// filter by year if the resource doesn't filter itself
 	if !website.Year {
-		for _, d := range data {
+		for _, d := range rawData {
 			if strings.Contains(d.Description, query.Year) {
 				filteredData = append(filteredData, d)
 			}
 		}
 	}
 
-	website.Results = filteredData
-
 	// update history
 	queryString := strings.Join(queryTerms, " ")
-	history[queryString] = data
-	err = writeFileJSON(histFile, history)
-	if err != nil {
-		os.Stderr.WriteString("WARNING: " + err.Error())
-	}
+	history[queryString] = filteredData
 
-	return website
+	return filteredData, writeFileJSON(histFile, history)
 }
 
 func searchInHistory(history records, query query) (bool, []authorData) {
