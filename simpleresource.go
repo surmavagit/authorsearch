@@ -17,6 +17,10 @@ type query struct {
 
 // searchResource loads the cached data and searches for the author.
 func (website resource) searchResource(query query, cacheDir string) resource {
+	if website.Complex {
+		return website.searchComplexResource(query, cacheDir)
+	}
+
 	cacheFileName := cacheDir + "/" + website.Name + ".json"
 	data := []authorData{}
 
