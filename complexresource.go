@@ -43,7 +43,7 @@ func (website resource) searchComplexResource(query query, cacheDir string) (dat
 	formatQuery := strings.Join(queryTerms, "+")
 
 	fullURL := website.BaseURL + website.QueryURL + formatQuery
-	body, err := getResource(fullURL)
+	body, err := requestURL(fullURL)
 	if err != nil {
 		return []authorData{}, err
 	}

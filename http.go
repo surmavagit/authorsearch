@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func getResource(fullURL string) ([]byte, error) {
+func requestURL(fullURL string) ([]byte, error) {
 	client := http.Client{
 		Timeout: 5 * time.Second,
 	}
