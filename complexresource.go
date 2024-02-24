@@ -11,10 +11,9 @@ func (website resource) searchComplexResource(query query, cacheDir string) reso
 	// normalise query - only for complex resources
 	query.LastName = strings.ToLower(query.LastName)
 	query.FirstName = strings.ToLower(query.FirstName)
-	query.Year = strings.ToLower(query.Year)
 
 	// check history
-	histFile := cacheDir + "/" + website.Name
+	histFile := cacheDir + "/" + website.Name + ".json"
 	noHistory, err := fileNotExist(histFile)
 	if err != nil && !noHistory {
 		website.Error = err
