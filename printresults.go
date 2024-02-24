@@ -52,12 +52,20 @@ func formatName(name string) string {
 }
 
 func formatNum(num string) string {
-	return fmt.Sprintf("%-9s", num)
+	return fmt.Sprintf("%-10s", num)
 }
 
 func formatDesc(desc string, nonum bool) string {
 	if nonum {
-		return fmt.Sprintf("%-45s", desc)
+		return fmt.Sprintf("%-46s", shorten(desc, 46))
 	}
-	return fmt.Sprintf("%-35s", desc)
+	return fmt.Sprintf("%-35s", shorten(desc, 35))
+}
+
+func shorten(s string, maximum int) string {
+	if len(s) <= maximum {
+		return s
+	}
+
+	return s[0:maximum-3] + "..."
 }
