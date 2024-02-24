@@ -10,8 +10,6 @@ type resource struct {
 	URLFilter    string // Valid URLs contain this string
 	FirstName    bool
 	Year         bool
-	Results      []authorData
-	Error        error
 }
 
 var resources = map[string]resource{
