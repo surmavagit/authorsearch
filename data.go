@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"strings"
+
+	"golang.org/x/net/html"
 )
 
 // readResource turns a byte stream from a response body into a slice of data.
@@ -22,38 +24,46 @@ func (website resource) readResource(file []byte) ([]authorData, error) {
 		links := getLinkElements(root)
 
 		for _, l := range links {
-			data := authorData{}
-			data.AuthorURL = getHrefAttr(l)
-			if !validURL(data.AuthorURL, website.URLFilter) {
+			data, ok := website.getDataFromLink(l)
+			if !ok {
 				continue
 			}
-
-			data.AuthorURL = strings.TrimLeft(data.AuthorURL, "/")
-			if data.AuthorURL == "" {
-				continue
-			}
-
-			if website.DescInParent {
-				if l.Parent == nil {
-					return []authorData{}, errors.New("no parent html element")
-				}
-				data.Description = getTextContent(l.Parent.FirstChild)
-			} else {
-				data.Description = getTextContent(l.FirstChild)
-			}
-
-			oneLine := strings.ReplaceAll(data.Description, "\n", " ")
-			data.Description = strings.Join(strings.Fields(oneLine), " ")
-			if data.Description == "" {
-				continue
-			}
-
 			sliceOfData = append(sliceOfData, data)
 		}
 		return sliceOfData, nil
 	}
 
 	return []authorData{}, errors.New("unknown resource data format")
+}
+
+func (website resource) getDataFromLink(l *html.Node) (authorData, bool) {
+	data := authorData{}
+
+	href := getHrefAttr(l)
+	if !validURL(href, website.URLFilter) {
+		return authorData{}, false
+	}
+	data.AuthorURL = strings.TrimLeft(href, "/")
+	if data.AuthorURL == "" {
+		return authorData{}, false
+	}
+
+	desc := ""
+	if website.DescInParent {
+		if l.Parent == nil {
+			return authorData{}, false
+		}
+		desc = getTextContent(l.Parent.FirstChild)
+	} else {
+		desc = getTextContent(l.FirstChild)
+	}
+	oneLine := strings.ReplaceAll(desc, "\n", " ")
+	data.Description = strings.Join(strings.Fields(oneLine), " ")
+	if data.Description == "" {
+		return authorData{}, false
+	}
+
+	return data, true
 }
 
 // validURL checks the validity of the url by applying a set of tests.
@@ -75,7 +85,7 @@ func validURL(url string, filter string) bool {
 
 // filterAndDedupe takes a slice of authorData structs and returns it after
 // throwing out all invalid and duplicate structs.
-func (website resource) dedupe(data []authorData) []authorData {
+func dedupe(data []authorData) []authorData {
 	uniqueData := []authorData{}
 	dataMap := map[string]string{}
 

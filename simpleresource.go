@@ -23,7 +23,7 @@ func (website resource) searchResource(query query, cacheDir string) (data []aut
 	}
 
 	if update {
-		data, err = website.getDataFromResource(cacheDir, cacheFileName)
+		data, err = website.getResource(cacheDir, cacheFileName)
 	} else {
 		err = loadFileJSON(cacheFileName, &data)
 	}
@@ -58,9 +58,9 @@ func (website resource) match(authorDesc string, query query) bool {
 
 // updateCache carries out an http get request and saves the response body
 // into a file
-func (website resource) getDataFromResource(cacheDir string, cacheFileName string) ([]authorData, error) {
+func (website resource) getResource(cacheDir string, cacheFileName string) ([]authorData, error) {
 	fullURL := website.BaseURL + website.QueryURL
-	body, err := getResource(fullURL)
+	body, err := requestURL(fullURL)
 	if err != nil {
 		return []authorData{}, err
 	}
@@ -70,5 +70,5 @@ func (website resource) getDataFromResource(cacheDir string, cacheFileName strin
 		return []authorData{}, err
 	}
 
-	return website.dedupe(data), nil
+	return dedupe(data), nil
 }
