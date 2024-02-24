@@ -31,17 +31,11 @@ func main() {
 
 	dataChan := make(chan resource)
 	wg := sync.WaitGroup{}
+	wg.Add(len(resources))
 	for _, r := range resources {
 		resource := r
-		wg.Add(1)
-		if !resource.Complex {
-			go func() {
-				dataChan <- resource.searchResource(searchQuery, cacheDirectory)
-			}()
-			continue
-		}
 		go func() {
-			dataChan <- resource.searchComplexResource(searchQuery, cacheDirectory)
+			dataChan <- resource.searchResource(searchQuery, cacheDirectory)
 		}()
 	}
 	go func() {

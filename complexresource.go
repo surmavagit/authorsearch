@@ -13,7 +13,7 @@ func (website resource) searchComplexResource(query query, cacheDir string) reso
 	query.FirstName = strings.ToLower(query.FirstName)
 
 	// check history
-	histFile := cacheDir + "/" + website.Name + ".json"
+	histFile := cacheDir + "/" + website.Name + "_" + query.LastName + ".json"
 	noHistory, err := fileNotExist(histFile)
 	if err != nil && !noHistory {
 		website.Error = err
@@ -60,7 +60,7 @@ func (website resource) searchComplexResource(query query, cacheDir string) reso
 	}
 
 	filteredData := []authorData{}
-	// manually filter by year if there is no automatic filter
+	// filter by year if the resource doesn't filter itself
 	if !website.Year {
 		for _, d := range data {
 			if strings.Contains(d.Description, query.Year) {

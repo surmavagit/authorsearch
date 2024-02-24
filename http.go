@@ -13,7 +13,6 @@ func getResource(fullURL string) ([]byte, error) {
 		Timeout: 5 * time.Second,
 	}
 	res, err := client.Get(fullURL)
-	defer closeBody(res)
 
 	if err != nil {
 		return []byte{}, err
@@ -23,10 +22,15 @@ func getResource(fullURL string) ([]byte, error) {
 	}
 
 	body, err := io.ReadAll(res.Body)
+	closeBody(res)
 	return body, err
 }
 
 func closeBody(res *http.Response) {
+	if res.Body == nil {
+		return
+	}
+
 	err := res.Body.Close()
 	if err != nil {
 		os.Stderr.WriteString("Failed to close response body: " + err.Error())
