@@ -6,13 +6,8 @@ import (
 
 type records map[string][]authorData
 
-func (website resource) searchComplexResource(query query, cacheDir string) (data []authorData, err error) {
-	// normalise query - only for complex resources
-	query.LastName = strings.ToLower(query.LastName)
-	query.FirstName = strings.ToLower(query.FirstName)
-
+func (website resource) searchComplexResource(q query, histFile string) ([]authorData, error) {
 	// check history
-	histFile := cacheDir + "/" + website.Name + "_" + query.LastName + ".json"
 	noHistory, err := fileNotExist(histFile)
 	if err != nil {
 		return []authorData{}, err
@@ -26,29 +21,14 @@ func (website resource) searchComplexResource(query query, cacheDir string) (dat
 			return []authorData{}, err
 		}
 
-		found, data := searchInHistory(history, query)
+		found, data := searchInHistory(history, q)
 		if found {
 			return data, nil
 		}
 	}
 
 	// query and analyze result
-	queryTerms := []string{query.LastName}
-	if website.FirstName && query.FirstName != "" {
-		queryTerms = append(queryTerms, query.FirstName)
-	}
-	if website.Year && query.Year != "" {
-		queryTerms = append(queryTerms, query.Year)
-	}
-	formatQuery := strings.Join(queryTerms, "+")
-
-	fullURL := website.BaseURL + website.QueryURL + formatQuery
-	body, err := requestURL(fullURL)
-	if err != nil {
-		return []authorData{}, err
-	}
-
-	rawData, err := website.readResource(body)
+	rawData, err := website.getResource(q)
 	if err != nil {
 		return []authorData{}, err
 	}
@@ -57,47 +37,65 @@ func (website resource) searchComplexResource(query query, cacheDir string) (dat
 	// filter by year if the resource doesn't filter itself
 	if !website.Year {
 		for _, d := range rawData {
-			if strings.Contains(d.Description, query.Year) {
+			if strings.Contains(d.Description, q.Year) {
 				filteredData = append(filteredData, d)
 			}
 		}
 	}
 
 	// update history
-	queryString := strings.Join(queryTerms, " ")
+	queryString := getQueryString(q)
 	history[queryString] = filteredData
 
 	return filteredData, writeFileJSON(histFile, history)
 }
 
-func searchInHistory(history records, query query) (bool, []authorData) {
-	last, ok := history[query.LastName]
+func getQueryString(q query) string {
+	q.LastName = strings.ToLower(q.LastName)
+	q.FirstName = strings.ToLower(q.FirstName)
+
+	querySlice := []string{q.LastName}
+
+	if q.FirstName != "" {
+		querySlice = append(querySlice, q.FirstName)
+	}
+	if q.Year != "" {
+		querySlice = append(querySlice, q.Year)
+	}
+	return strings.Join(querySlice, " ")
+}
+
+func searchInHistory(history records, q query) (bool, []authorData) {
+	q.LastName = strings.ToLower(q.LastName)
+	q.FirstName = strings.ToLower(q.FirstName)
+
+	last, ok := history[q.LastName]
 	if ok {
-		if last == nil || query.FirstName == "" && query.Year == "" {
+		if last == nil || q.FirstName == "" && q.Year == "" {
 			return true, last
 		}
 	}
 
-	if query.FirstName != "" {
-		first, ok := history[query.LastName+" "+query.FirstName]
+	if q.FirstName != "" {
+		first, ok := history[q.LastName+" "+q.FirstName]
 		if ok {
-			if first == nil || query.Year == "" {
+			if first == nil || q.Year == "" {
 				return true, first
 			}
 		}
 	}
 
-	if query.Year != "" {
-		year, ok := history[query.LastName+" "+query.Year]
+	if q.Year != "" {
+		year, ok := history[q.LastName+" "+q.Year]
 		if ok {
-			if year == nil || query.FirstName == "" {
+			if year == nil || q.FirstName == "" {
 				return true, year
 			}
 		}
 	}
 
-	if query.FirstName != "" && query.Year != "" {
-		full, ok := history[query.LastName+" "+query.FirstName+" "+query.Year]
+	if q.FirstName != "" && q.Year != "" {
+		full, ok := history[q.LastName+" "+q.FirstName+" "+q.Year]
 		if ok {
 			return true, full
 		}
