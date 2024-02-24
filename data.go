@@ -77,20 +77,14 @@ func validURL(url string, filter string) bool {
 // throwing out all invalid and duplicate structs.
 func (website resource) dedupe(data []authorData) []authorData {
 	uniqueData := []authorData{}
-	dataMap := map[string]bool{}
-	separator := "%%"
+	dataMap := map[string]string{}
 
 	for _, d := range data {
-		dataString := d.AuthorURL + separator + d.Description
-		dataMap[dataString] = false
+		dataMap[d.AuthorURL] = d.Description
 	}
 
-	for i := range dataMap {
-		url, desc, ok := strings.Cut(i, separator)
-		if !ok {
-			continue
-		}
-		uniqueData = append(uniqueData, authorData{Description: desc, AuthorURL: url})
+	for u, d := range dataMap {
+		uniqueData = append(uniqueData, authorData{Description: d, AuthorURL: u})
 	}
 	return uniqueData
 }
