@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"regexp"
 	"sync"
@@ -23,7 +22,7 @@ func main() {
 	}
 
 	cacheDirectory := "cache"
-	err = checkCacheDir(cacheDirectory)
+	err = createDirIfNotExist(cacheDirectory)
 	if err != nil {
 		os.Stderr.WriteString(err.Error())
 		os.Exit(1)
@@ -45,6 +44,12 @@ func main() {
 		}
 	}()
 	wg.Wait()
+}
+
+type query struct {
+	LastName  string
+	FirstName string
+	Year      string
 }
 
 func checkInput(input []string) (query, error) {
@@ -101,26 +106,4 @@ func checkInput(input []string) (query, error) {
 	}
 
 	return queryStruct, nil
-}
-
-func checkCacheDir(directory string) error {
-	info, err := os.Stat(directory)
-
-	if errors.Is(err, os.ErrNotExist) {
-		err = os.Mkdir(directory, 0755)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-
-	if err != nil {
-		return err
-	}
-
-	if !info.IsDir() {
-		return fmt.Errorf("%s is not a directory", directory)
-	}
-
-	return nil
 }
