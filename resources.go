@@ -74,4 +74,16 @@ var resources = map[string]resource{
 		FirstName:    true,
 		Year:         true,
 	},
+
+	"openlib": {
+		Name:         "openlib",
+		Complex:      true,
+		BaseURL:      "https://openlibrary.org/",
+		QueryURL:     "search/authors?q=",
+		DataFormat:   "html",
+		DescInParent: true,
+		URLFilter:    "authors/",
+		FirstName:    true,
+		Year:         false,
+	},
 }
