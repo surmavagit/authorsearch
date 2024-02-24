@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 )
 
@@ -35,20 +36,24 @@ func writeFileJSON(fileName string, source any) error {
 	return os.WriteFile(fileName, []byte(stream), 0644)
 }
 
-// updateCache carries out an http get request and saves the response body
-// into a file
-func (website resource) updateCache(cacheDir string, cacheFileName string) ([]authorData, error) {
-	fullURL := website.BaseURL + website.QueryURL
-	body, err := getResource(fullURL)
-	if err != nil {
-		return []authorData{}, err
+func createDirIfNotExist(directory string) error {
+	info, err := os.Stat(directory)
+
+	if errors.Is(err, os.ErrNotExist) {
+		err = os.Mkdir(directory, 0755)
+		if err != nil {
+			return err
+		}
+		return nil
 	}
 
-	data, err := website.readResource(body)
 	if err != nil {
-		return []authorData{}, err
+		return err
 	}
-	filteredData := website.dedupe(data)
 
-	return filteredData, writeFileJSON(cacheFileName, filteredData)
+	if !info.IsDir() {
+		return fmt.Errorf("%s is not a directory", directory)
+	}
+
+	return nil
 }

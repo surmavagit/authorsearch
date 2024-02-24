@@ -9,12 +9,6 @@ type authorData struct {
 	AuthorURL   string `json:"href"`
 }
 
-type query struct {
-	LastName  string
-	FirstName string
-	Year      string
-}
-
 // searchResource loads the cached data and searches for the author.
 func (website resource) searchResource(query query, cacheDir string) resource {
 	if website.Complex {
@@ -61,4 +55,22 @@ func (website resource) match(authorDesc string, query query) bool {
 	}
 
 	return !website.Year || strings.Contains(authorDesc, query.Year)
+}
+
+// updateCache carries out an http get request and saves the response body
+// into a file
+func (website resource) updateCache(cacheDir string, cacheFileName string) ([]authorData, error) {
+	fullURL := website.BaseURL + website.QueryURL
+	body, err := getResource(fullURL)
+	if err != nil {
+		return []authorData{}, err
+	}
+
+	data, err := website.readResource(body)
+	if err != nil {
+		return []authorData{}, err
+	}
+	filteredData := website.dedupe(data)
+
+	return filteredData, writeFileJSON(cacheFileName, filteredData)
 }
