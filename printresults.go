@@ -6,6 +6,10 @@ import (
 )
 
 func printResults(r result, verbose bool, nonum bool, nodesc bool) {
+	if r.CacheErr != nil {
+		os.Stderr.WriteString(fmt.Sprintln(formatName(r.Name), r.CacheErr.Error()))
+	}
+
 	if r.Error != nil {
 		os.Stderr.WriteString(fmt.Sprintln(formatName(r.Name), r.Error.Error()))
 		return
