@@ -8,8 +8,10 @@ type resource struct {
 	DataFormat   string // json or html
 	DescInParent bool   // Location of the full description in HTML document relative to the <a> tag
 	URLFilter    string // Valid URLs contain this string
-	FirstName    bool
-	Year         bool
+	FirstName    bool   // first name in description
+	Year         bool   // year in description
+	QueryFirst   bool   // query by first name
+	QueryYear    bool   // query by year
 }
 
 var resources = map[string]resource{
@@ -71,6 +73,8 @@ var resources = map[string]resource{
 		URLFilter:    "ebooks/author/",
 		FirstName:    true,
 		Year:         true,
+		QueryFirst:   true,
+		QueryYear:    true,
 	},
 
 	"openlib": {
@@ -82,6 +86,22 @@ var resources = map[string]resource{
 		DescInParent: true,
 		URLFilter:    "authors/",
 		FirstName:    true,
+		Year:         true,
+		QueryFirst:   true,
+		QueryYear:    false,
+	},
+
+	"tokyo": {
+		Name:         "tokyo",
+		Complex:      true,
+		BaseURL:      "https://repository.tku.ac.jp/",
+		QueryURL:     "dspace/browse?type=author&order=ASC/&rpp=5&starts_with=",
+		DataFormat:   "html",
+		DescInParent: true,
+		URLFilter:    "&value=",
+		FirstName:    true,
 		Year:         false,
+		QueryFirst:   false,
+		QueryYear:    false,
 	},
 }

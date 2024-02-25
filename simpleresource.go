@@ -72,10 +72,10 @@ func (website resource) getFullQueryURL(query query) string {
 	}
 
 	queryTerms := []string{query.LastName}
-	if website.FirstName && query.FirstName != "" {
+	if website.QueryFirst && query.FirstName != "" {
 		queryTerms = append(queryTerms, query.FirstName)
 	}
-	if website.Year && query.Year != "" {
+	if website.QueryYear && query.Year != "" {
 		queryTerms = append(queryTerms, query.Year)
 	}
 	formatQuery := strings.Join(queryTerms, "+")
