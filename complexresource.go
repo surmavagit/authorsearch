@@ -33,15 +33,7 @@ func (website resource) searchComplexResource(q query, histFile string) ([]autho
 		return []authorData{}, err
 	}
 
-	filteredData := []authorData{}
-	// filter by year if the resource doesn't filter itself
-	if !website.Year {
-		for _, d := range rawData {
-			if strings.Contains(d.Description, q.Year) {
-				filteredData = append(filteredData, d)
-			}
-		}
-	}
+	filteredData := website.filterRelevant(rawData, q)
 
 	// update history
 	queryString := getQueryString(q)
