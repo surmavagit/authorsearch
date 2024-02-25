@@ -10,10 +10,11 @@ import (
 )
 
 type result struct {
-	Name    string
-	BaseURL string
-	Data    []authorData
-	Error   error
+	Name     string
+	BaseURL  string
+	Data     []authorData
+	Error    error
+	CacheErr error
 }
 
 func main() {
@@ -41,8 +42,8 @@ func main() {
 	for _, r := range resources {
 		resource := r
 		go func() {
-			data, err := resource.searchResource(searchQuery, cacheDirectory)
-			dataChan <- result{resource.Name, resource.BaseURL, data, err}
+			data, cacheErr, err := resource.searchResource(searchQuery, cacheDirectory)
+			dataChan <- result{Name: resource.Name, BaseURL: resource.BaseURL, Data: data, Error: err, CacheErr: cacheErr}
 		}()
 	}
 	go func() {

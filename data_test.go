@@ -35,9 +35,9 @@ func TestGetLinkElements(t *testing.T) {
 </div>
 `, linkOne.AuthorURL, linkOne.Description, linkTwo.AuthorURL, linkTwo.Description, linkThree.AuthorURL, linkThree.Description)
 
-	root := parseHTML([]byte(htmlToCheck))
-	if root == nil {
-		t.Fatal("cannot find html root element")
+	root, err := parseHTML([]byte(htmlToCheck))
+	if err != nil {
+		t.Fatalf("cannot parse HTML: %s", err)
 	}
 
 	linkSlice := getLinkElements(root)

@@ -10,18 +10,18 @@ type authorData struct {
 }
 
 // searchResource loads the cached data and searches for the author.
-func (website resource) searchResource(q query, cacheDir string) (data []authorData, err error) {
+func (website resource) searchResource(q query, cacheDir string) (data []authorData, cacheErr error, err error) {
 	cacheFileName := website.getCacheFileName(cacheDir, q.LastName)
 	data, history, cacheErr := website.searchInCache(q, cacheFileName)
 	if data != nil {
 		// successfully found data in cache
-		return data, nil
+		return data, nil, nil
 	}
 
 	data, err = website.getResource(q)
 	if err != nil {
 		// didn't find data in cache, error getting data from resource
-		return nil, err
+		return nil, cacheErr, err
 	}
 	filteredData := website.filterRelevant(data, q)
 
@@ -38,7 +38,7 @@ func (website resource) searchResource(q query, cacheDir string) (data []authorD
 		}
 	}
 
-	return filteredData, cacheErr
+	return filteredData, cacheErr, nil
 }
 
 func (website resource) searchInCache(q query, cacheFileName string) (data []authorData, history records, err error) {
