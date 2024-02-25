@@ -17,9 +17,9 @@ func (website resource) readResource(file []byte) ([]authorData, error) {
 	}
 
 	if website.DataFormat == "html" {
-		root := parseHTML(file)
-		if root == nil {
-			return []authorData{}, errors.New("can't parse html")
+		root, err := parseHTML(file)
+		if err != nil {
+			return nil, err
 		}
 		links := getLinkElements(root)
 
@@ -33,7 +33,7 @@ func (website resource) readResource(file []byte) ([]authorData, error) {
 		return sliceOfData, nil
 	}
 
-	return []authorData{}, errors.New("unknown resource data format")
+	return nil, errors.New("unknown resource data format")
 }
 
 func (website resource) getDataFromLink(l *html.Node) (authorData, bool) {
@@ -83,7 +83,7 @@ func validURL(url string, filter string) bool {
 	return true
 }
 
-// filterAndDedupe takes a slice of authorData structs and returns it after
+// dedupe takes a slice of authorData structs and returns it after
 // throwing out all invalid and duplicate structs.
 func dedupe(data []authorData) []authorData {
 	uniqueData := []authorData{}
