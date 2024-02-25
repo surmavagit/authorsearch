@@ -10,27 +10,60 @@ type authorData struct {
 }
 
 // searchResource loads the cached data and searches for the author.
-func (website resource) searchResource(query query, cacheDir string) (data []authorData, err error) {
-	cacheFileName := website.getCacheFileName(cacheDir, query.LastName)
-	if website.Complex {
-		return website.searchComplexResource(query, cacheFileName)
+func (website resource) searchResource(q query, cacheDir string) (data []authorData, err error) {
+	cacheFileName := website.getCacheFileName(cacheDir, q.LastName)
+	data, history, cacheErr := website.searchInCache(q, cacheFileName)
+	if data != nil {
+		// successfully found data in cache
+		return data, nil
 	}
 
-	update, err := fileNotExist(cacheFileName)
+	data, err = website.getResource(q)
 	if err != nil {
-		return []authorData{}, err
+		// didn't find data in cache, error getting data from resource
+		return nil, err
+	}
+	filteredData := website.filterRelevant(data, q)
+
+	// don't update cache if there already is a cache error
+	if cacheErr == nil {
+		if website.Complex {
+			if history == nil {
+				history = records{}
+			}
+			history[getQueryString(q)] = filteredData
+			cacheErr = writeFileJSON(cacheFileName, history)
+		} else {
+			cacheErr = writeFileJSON(cacheFileName, data)
+		}
 	}
 
-	if update {
-		data, err = website.getResource(query)
-	} else {
+	return filteredData, cacheErr
+}
+
+func (website resource) searchInCache(q query, cacheFileName string) (data []authorData, history records, err error) {
+	noFile, err := fileNotExist(cacheFileName)
+	if err != nil || noFile {
+		return nil, nil, err
+	}
+
+	if !website.Complex {
 		err = loadFileJSON(cacheFileName, &data)
+	} else {
+		err = loadFileJSON(cacheFileName, &history)
 	}
 	if err != nil {
-		return []authorData{}, err
+		return nil, nil, err
 	}
 
-	return website.filterRelevant(data, query), writeFileJSON(cacheFileName, data)
+	if website.Complex {
+		found, data := searchInHistory(history, q)
+		if !found {
+			return nil, history, nil
+		}
+		return data, nil, nil
+	}
+	return website.filterRelevant(data, q), nil, nil
 }
 
 func (website resource) getCacheFileName(cacheDir string, lastName string) string {

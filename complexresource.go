@@ -6,42 +6,6 @@ import (
 
 type records map[string][]authorData
 
-func (website resource) searchComplexResource(q query, histFile string) ([]authorData, error) {
-	// check history
-	noHistory, err := fileNotExist(histFile)
-	if err != nil {
-		return []authorData{}, err
-	}
-
-	// load history and search
-	history := records{}
-	if !noHistory {
-		err := loadFileJSON(histFile, &history)
-		if err != nil {
-			return []authorData{}, err
-		}
-
-		found, data := searchInHistory(history, q)
-		if found {
-			return data, nil
-		}
-	}
-
-	// query and analyze result
-	rawData, err := website.getResource(q)
-	if err != nil {
-		return []authorData{}, err
-	}
-
-	filteredData := website.filterRelevant(rawData, q)
-
-	// update history
-	queryString := getQueryString(q)
-	history[queryString] = filteredData
-
-	return filteredData, writeFileJSON(histFile, history)
-}
-
 func getQueryString(q query) string {
 	q.LastName = strings.ToLower(q.LastName)
 	q.FirstName = strings.ToLower(q.FirstName)
