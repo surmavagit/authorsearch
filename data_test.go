@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestParseCache(t *testing.T) {
+func TestReadResource(t *testing.T) {
 	website := resource{DataFormat: "json"}
 	expectedStruct := authorData{Description: "author name", AuthorURL: "www.example.com"}
 	jsonToTest, err := json.Marshal([]authorData{expectedStruct})
@@ -53,8 +53,5 @@ func TestGetLinkElements(t *testing.T) {
 }
 
 func compareData(one authorData, two authorData) bool {
-	if one.AuthorURL == two.AuthorURL && one.Description == two.Description {
-		return true
-	}
-	return false
+	return one.AuthorURL == two.AuthorURL && one.Description == two.Description
 }

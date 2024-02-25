@@ -7,11 +7,10 @@ import (
 	"golang.org/x/net/html/atom"
 )
 
-// parseHTML returns a pointer to the root node of html or, if parsing fails, it returns nil
-func parseHTML(file []byte) *html.Node {
+// parseHTML reads the provided byte stream as html and returns a pointer to its root node
+func parseHTML(file []byte) (*html.Node, error) {
 	reader := bytes.NewReader(file)
-	rootNode, _ := html.Parse(reader)
-	return rootNode
+	return html.Parse(reader)
 }
 
 // getLinkElements recursively goes through all the children and siblings of the provided html node

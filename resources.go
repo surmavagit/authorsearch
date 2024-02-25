@@ -97,7 +97,7 @@ var resources = map[string]resource{
 		BaseURL:      "https://repository.tku.ac.jp/",
 		QueryURL:     "dspace/browse?type=author&order=ASC/&rpp=5&starts_with=",
 		DataFormat:   "html",
-		DescInParent: true,
+		DescInParent: false,
 		URLFilter:    "&value=",
 		FirstName:    true,
 		Year:         false,
