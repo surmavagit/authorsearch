@@ -104,4 +104,18 @@ var resources = map[string]resource{
 		QueryFirst:   false,
 		QueryYear:    false,
 	},
+
+	"onlinebooks": {
+		Name:         "onlinebooks",
+		Complex:      true,
+		BaseURL:      "",
+		QueryURL:     "https://onlinebooks.library.upenn.edu/webbin/book/browse?type=author&key=",
+		DataFormat:   "html",
+		DescInParent: true,
+		URLFilter:    "lookupname",
+		FirstName:    true,
+		Year:         false,
+		QueryFirst:   false,
+		QueryYear:    false,
+	},
 }
