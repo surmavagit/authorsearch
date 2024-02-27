@@ -63,11 +63,11 @@ func (website resource) searchInCache(q query, cacheFileName string) (data []aut
 		if website.QueryYear {
 			relevantQuery.Year = q.Year
 		}
-		found, data := searchInHistory(history, relevantQuery)
+		found := false
+		found, data = searchInHistory(history, relevantQuery)
 		if !found {
 			return nil, history, nil
 		}
-		return data, nil, nil
 	}
 	return website.filterRelevant(data, q), nil, nil
 }
