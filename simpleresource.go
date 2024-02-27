@@ -23,7 +23,6 @@ func (website resource) searchResource(q query, cacheDir string) (data []authorD
 		// didn't find data in cache, error getting data from resource
 		return nil, cacheErr, err
 	}
-	filteredData := website.filterRelevant(data, q)
 
 	// don't update cache if there already is a cache error
 	if cacheErr == nil {
@@ -31,14 +30,14 @@ func (website resource) searchResource(q query, cacheDir string) (data []authorD
 			if history == nil {
 				history = records{}
 			}
-			history[getQueryString(q)] = filteredData
+			history[website.getQueryString(q)] = data
 			cacheErr = writeFileJSON(cacheFileName, history)
 		} else {
 			cacheErr = writeFileJSON(cacheFileName, data)
 		}
 	}
 
-	return filteredData, cacheErr, nil
+	return website.filterRelevant(data, q), cacheErr, nil
 }
 
 func (website resource) searchInCache(q query, cacheFileName string) (data []authorData, history records, err error) {
@@ -57,7 +56,14 @@ func (website resource) searchInCache(q query, cacheFileName string) (data []aut
 	}
 
 	if website.Complex {
-		found, data := searchInHistory(history, q)
+		relevantQuery := query{LastName: q.LastName}
+		if website.QueryFirst {
+			relevantQuery.FirstName = q.FirstName
+		}
+		if website.QueryYear {
+			relevantQuery.Year = q.Year
+		}
+		found, data := searchInHistory(history, relevantQuery)
 		if !found {
 			return nil, history, nil
 		}
