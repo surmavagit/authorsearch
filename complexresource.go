@@ -6,16 +6,16 @@ import (
 
 type records map[string][]authorData
 
-func getQueryString(q query) string {
+func (website resource) getQueryString(q query) string {
 	q.LastName = strings.ToLower(q.LastName)
 	q.FirstName = strings.ToLower(q.FirstName)
 
 	querySlice := []string{q.LastName}
 
-	if q.FirstName != "" {
+	if website.QueryFirst && q.FirstName != "" {
 		querySlice = append(querySlice, q.FirstName)
 	}
-	if q.Year != "" {
+	if website.QueryYear && q.Year != "" {
 		querySlice = append(querySlice, q.Year)
 	}
 	return strings.Join(querySlice, " ")
