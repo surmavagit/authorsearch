@@ -25,8 +25,15 @@ e.g. ``./authorsearch Smith`` will give you results for authors called Smith.
 
 e.g. ``./authorsearch Smith Adam`` or ``./authorsearch Smith 1790`` or ``./authorsearch Smith Adam 1723`` are all valid requests.
 
-- There are several optional flags to modify the presentation of results, to check them run ``./authorsearch --help`` or ``-h``
+- There are several flags avaliable:
 
+``--help, -h`` shows information about the flags
+
+``--verbose, -v`` shows all results, including resources where nothing was found
+
+``--no-description, -d`` suppresses the description column in the results
+
+``--no-numbers, -n`` suppresses the number column in the results
 
 
 ## Featured Libraries
