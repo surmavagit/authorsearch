@@ -30,7 +30,7 @@ var resources = map[string]resource{
 	"mcmaster": {
 		Name:         "mcmaster",
 		Complex:      false,
-		BaseURL:      "https://socialsciences.mcmaster.ca/econ/ugcm/3ll3/",
+		BaseURL:      "https://historyofeconomicthought.mcmaster.ca/",
 		QueryURL:     "authors.html",
 		DataFormat:   "html",
 		DescInParent: false,
